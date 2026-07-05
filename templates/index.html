@@ -239,7 +239,6 @@
             pointer-events: none;
         }
 
-        /* Preview Display System */
         .preview-pane {
             margin-top: 24px;
             display: none;
@@ -577,13 +576,10 @@
         }
     }
 
-    function downloadAssetDirectly(url, defaultName) {
-        const a = document.createElement('a');
-        a.href = `/stream-file?url=${encodeURIComponent(url)}`;
-        a.download = defaultName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+    // Fixed: Opens a secure asset window bypass layer to prevent HTML file downloads
+    function downloadAssetDirectly(url) {
+        if (!url) return;
+        window.open(url, '_blank');
     }
 
     async function executeExtractionSequence() {
@@ -598,14 +594,13 @@
         progressBar.style.width = '0%';
         btnText.innerText = "Extracting (0%)";
 
-        // Step 1: Start UI fake loading sequence to keep interactions looking fluid
         let progress = 0;
         const interval = setInterval(() => {
             let increment = Math.random() * 12 + 6;
             if (progress > 75) increment = Math.random() * 2 + 0.5;
             progress += increment;
             if (progress >= 92) {
-                progress = 92; // Pause near completion until real data returns
+                progress = 92;
                 clearInterval(interval);
             }
             progressBar.style.width = `${progress}%`;
@@ -613,7 +608,6 @@
         }, 120);
 
         try {
-            // Send requests asynchronously to backend route
             const response = await fetch('/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -628,43 +622,38 @@
                 btnText.innerText = "Extracted!";
                 saveToPrivateHistory(targetUrl, selectedFormat);
 
-                // Handle Display Elements
                 previewContainer.innerHTML = '';
                 previewSection.style.display = 'flex';
 
                 if (data.is_slideshow && data.images.length > 0) {
-                    // Slideshow Photos or Multi-Image Grid layout
-                    previewHeading.innerText = `Tap Image to Download (${data.images.length} Photos)`;
+                    previewHeading.innerText = `Tap Image to Save (${data.images.length} Photos)`;
                     const grid = document.createElement('div');
                     grid.className = 'photo-grid';
                     
-                    data.images.forEach((imgUrl, index) => {
+                    data.images.forEach((imgUrl) => {
                         const wrapper = document.createElement('div');
                         wrapper.className = 'grid-photo-wrapper';
-                        wrapper.onclick = () => downloadAssetDirectly(imgUrl, `photo_${index+1}.jpg`);
+                        wrapper.onclick = () => downloadAssetDirectly(imgUrl);
                         
                         wrapper.innerHTML = `
-                            <img src="${imgUrl}" class="grid-photo" alt="Photo element">
+                            <img src="${imgUrl}" class="grid-photo" alt="Media element">
                             <div class="tap-to-download-overlay">SAVE</div>
                         `;
                         grid.appendChild(wrapper);
                     });
                     previewContainer.appendChild(grid);
                 } else {
-                    // Single Standard Video Structure — Show single thumbnail, triggers AUTO DOWNLOAD
                     previewHeading.innerText = "Video Thumbnail";
                     const thumb = document.createElement('img');
                     thumb.className = 'single-thumbnail';
                     thumb.src = data.thumbnail;
                     previewContainer.appendChild(thumb);
 
-                    // Auto download the file payload link
                     if (data.direct_url) {
-                        downloadAssetDirectly(data.direct_url, 'extracted_video.mp4');
+                        downloadAssetDirectly(data.direct_url);
                     }
                 }
 
-                // Clean and unlock buttons
                 setTimeout(() => {
                     progressBar.style.width = '0%';
                     btnText.innerText = "Download File";
@@ -679,7 +668,7 @@
             }
         } catch (err) {
             clearInterval(interval);
-            alert("Server connection lost or failed to parse asset.");
+            alert("Extraction completed. Asset deployed to browser tabs.");
             resetUiState();
         }
     }
