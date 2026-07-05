@@ -503,12 +503,11 @@
     renderPrivateHistory();
 
     document.getElementById('downloader-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const form = this;
         const targetUrl = inputField.value.trim();
         const selectedFormat = document.querySelector('input[name="format"]:checked').value;
         
         if (!isValidLink(targetUrl)) {
+            e.preventDefault();
             inputField.classList.remove('valid-link');
             inputField.classList.add('invalid-link');
             errorMsg.style.display = 'block';
@@ -520,44 +519,10 @@
         const progressBar = document.getElementById('progress-bar');
         
         btn.disabled = true;
-        progressBar.style.width = '0%';
-        btnText.innerText = "Connecting...";
-
-        setTimeout(() => {
-            btnText.innerText = "Analyzing Tracks...";
-            
-            setTimeout(() => {
-                const networkSpeedMbps = (navigator.connection && navigator.connection.downlink) ? navigator.connection.downlink : 15; 
-                const networkSpeedBytesPerSec = (networkSpeedMbps * 1024 * 1024) / 8;
-                const mockFileSize = (Math.random() * (selectedFormat === 'mp3' ? [8 - 3] + 3 : [45 - 18] + 18)) * 1024 * 1024;
-                const totalDurationMs = (mockFileSize / networkSpeedBytesPerSec) * 1000;
-                
-                let currentProgress = 0;
-                const progressInterval = setInterval(() => {
-                    const fluctuation = Math.random() * (1.3 - 0.7) + 0.7;
-                    currentProgress += ((100 / totalDurationMs) * 100) * fluctuation;
-                    
-                    if (currentProgress >= 100) {
-                        currentProgress = 100;
-                        progressBar.style.width = '100%';
-                        btnText.innerText = "Encoding File...";
-                        clearInterval(progressInterval);
-                        
-                        setTimeout(() => {
-                            saveToPrivateHistory(targetUrl, selectedFormat);
-                            progressBar.style.width = '0%';
-                            btnText.innerText = "Download File";
-                            inputField.classList.remove('valid-link', 'invalid-link');
-                            btn.disabled = false;
-                            form.submit();
-                        }, 900);
-                    } else {
-                        progressBar.style.width = `${currentProgress}%`;
-                        btnText.innerText = `Extracting (${Math.floor(currentProgress)}%)`;
-                    }
-                }, 100);
-            }, 1200);
-        }, 800);
+        progressBar.style.width = '50%';
+        btnText.innerText = "Extracting Media...";
+        
+        saveToPrivateHistory(targetUrl, selectedFormat);
     });
 </script>
 
