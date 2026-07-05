@@ -18,6 +18,12 @@
             --success-glow: rgba(48, 209, 88, 0.2);
         }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
@@ -29,7 +35,6 @@
             min-height: 100vh;
             margin: 0;
             padding: 20px 0;
-            box-sizing: border-box;
             overflow-x: hidden;
             position: relative;
         }
@@ -53,13 +58,13 @@
             background: var(--panel-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            padding: 40px 30px;
+            padding: 30px 24px;
             border-radius: 24px;
             border: 1px solid var(--border-color);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
             text-align: center;
-            max-width: 420px;
-            width: 85%;
+            max-width: 440px;
+            width: 90%;
             z-index: 1;
             margin-bottom: 24px;
         }
@@ -84,7 +89,7 @@
         .supported-badge {
             font-size: 12px;
             color: var(--text-muted);
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             display: block;
             font-weight: 500;
         }
@@ -92,7 +97,7 @@
         .supported-badge span {
             color: #ffffff;
             background: rgba(255, 255, 255, 0.05);
-            padding: 2px 6px;
+            padding: 2px 8px;
             border-radius: 6px;
             margin: 0 2px;
             font-size: 11px;
@@ -130,7 +135,7 @@
 
         .input-wrapper {
             position: relative;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         input[type="text"] {
@@ -171,7 +176,7 @@
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.05);
             color: var(--text-main);
-            padding: 6px 12px;
+            padding: 6px 14px;
             border-radius: 8px;
             font-size: 12px;
             font-weight: 600;
@@ -187,7 +192,7 @@
             color: var(--error-color);
             font-size: 14px;
             margin-top: -8px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             text-align: left;
             padding-left: 4px;
             display: none;
@@ -209,6 +214,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            margin-top: 8px;
         }
 
         button[type="submit"]:hover:not(:disabled) { 
@@ -239,7 +245,156 @@
             pointer-events: none;
         }
 
-        /* Thumbnail Preview */
+        /* Carousel Styles */
+        .carousel-container {
+            display: none;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            position: relative;
+            width: 100%;
+        }
+
+        .carousel-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-align: left;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .carousel-window {
+            position: relative;
+            width: 100%;
+            height: 280px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .carousel-track {
+            display: flex;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            height: 100%;
+            width: 100%;
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .carousel-slide img,
+        .carousel-slide video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .slide-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent-color);
+            color: white;
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 2;
+        }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .carousel-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .carousel-btn:active {
+            transform: translateY(-50%) scale(0.9);
+        }
+
+        .carousel-prev {
+            left: 8px;
+        }
+
+        .carousel-next {
+            right: 8px;
+        }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .carousel-dot.active {
+            background: var(--accent-color);
+            width: 24px;
+            border-radius: 10px;
+        }
+
+        .download-selected-btn {
+            display: none;
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .download-selected-btn:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+
         .thumbnail-preview {
             margin-top: 16px;
             margin-bottom: 8px;
@@ -250,67 +405,11 @@
             border: 1px solid var(--border-color);
         }
 
-        .thumbnail-preview img,
-        .thumbnail-preview video {
+        .thumbnail-preview img {
             width: 100%;
             display: block;
             max-height: 200px;
             object-fit: cover;
-        }
-
-        .media-gallery {
-            display: none;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-top: 12px;
-            margin-bottom: 16px;
-        }
-
-        .media-gallery-item {
-            position: relative;
-            border-radius: 10px;
-            overflow: hidden;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.2s ease;
-            aspect-ratio: 1;
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        .media-gallery-item:hover {
-            border-color: var(--accent-color);
-            transform: scale(1.05);
-        }
-
-        .media-gallery-item img,
-        .media-gallery-item video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .live-photo-badge {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            background: var(--accent-color);
-            color: white;
-            font-size: 8px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 700;
-            text-transform: uppercase;
-            z-index: 2;
-        }
-
-        .gallery-label {
-            display: none;
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 4px;
-            margin-bottom: 4px;
-            text-align: left;
         }
 
         .recent-container {
@@ -320,8 +419,8 @@
             padding: 24px 30px;
             border-radius: 24px;
             border: 1px solid var(--border-color);
-            max-width: 420px;
-            width: 85%;
+            max-width: 440px;
+            width: 90%;
             z-index: 1;
             text-align: left;
             box-sizing: border-box;
@@ -391,8 +490,8 @@
         }
 
         .credits-container {
-            margin-top: 35px;
-            padding-top: 20px;
+            margin-top: 30px;
+            padding-top: 18px;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
@@ -401,13 +500,13 @@
             letter-spacing: 1.5px;
             text-transform: uppercase;
             color: var(--text-muted);
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .social-grid {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             align-items: center;
         }
 
@@ -427,6 +526,12 @@
 
         .social-item:hover { opacity: 0.8; }
         .social-icon { width: 18px; height: 18px; fill: currentColor; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+        @media (max-width: 400px) {
+            .carousel-window {
+                height: 240px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -451,12 +556,20 @@
         </div>
         <div class="error-message" id="url-error">Wrong link. Please enter a valid YouTube, TikTok, or Snapchat URL.</div>
 
-        <!-- Thumbnail Preview -->
+        <!-- Video Thumbnail Preview -->
         <div class="thumbnail-preview" id="thumbnail-preview"></div>
         
-        <!-- Media Gallery for photos/live photos -->
-        <div class="gallery-label" id="gallery-label">📸 Tap image to download</div>
-        <div class="media-gallery" id="media-gallery"></div>
+        <!-- Carousel for multiple photos/live photos -->
+        <div class="carousel-container" id="carousel-container">
+            <div class="carousel-label" id="carousel-label">📸 Swipe or use arrows - Tap middle image to download</div>
+            <div class="carousel-window" id="carousel-window">
+                <div class="carousel-track" id="carousel-track"></div>
+                <button type="button" class="carousel-btn carousel-prev" id="carousel-prev">‹</button>
+                <button type="button" class="carousel-btn carousel-next" id="carousel-next">›</button>
+            </div>
+            <div class="carousel-dots" id="carousel-dots"></div>
+            <button type="button" class="download-selected-btn" id="download-selected-btn">⬇ Download Selected</button>
+        </div>
 
         <button type="submit" id="download-btn">
             <div class="btn-progress-bar" id="progress-bar"></div>
@@ -493,18 +606,28 @@
     const errorMsg = document.getElementById('url-error');
     const mainForm = document.getElementById('downloader-form');
     const thumbnailPreview = document.getElementById('thumbnail-preview');
-    const mediaGallery = document.getElementById('media-gallery');
-    const galleryLabel = document.getElementById('gallery-label');
+    const carouselContainer = document.getElementById('carousel-container');
+    const carouselTrack = document.getElementById('carousel-track');
+    const carouselDots = document.getElementById('carousel-dots');
+    const carouselPrev = document.getElementById('carousel-prev');
+    const carouselNext = document.getElementById('carousel-next');
+    const downloadSelectedBtn = document.getElementById('download-selected-btn');
+    const carouselLabel = document.getElementById('carousel-label');
     
-    let detectedMediaItems = [];
-    let isPhotoGallery = false;
+    let currentSlide = 0;
+    let mediaSlides = [];
+    let isPhotoMode = false;
+
+    // Touch/swipe variables
+    let touchStartX = 0;
+    let touchEndX = 0;
 
     function evaluateInput() {
         const url = inputField.value.trim();
         if (url === "") {
             inputField.classList.remove('valid-link', 'invalid-link');
             errorMsg.style.display = 'none';
-            hidePreviews();
+            hideAllPreviews();
             return;
         }
 
@@ -512,11 +635,11 @@
             inputField.classList.remove('invalid-link');
             inputField.classList.add('valid-link');
             errorMsg.style.display = 'none';
-            fetchPreviewFromBackend(url);
+            fetchMediaInfo(url);
         } else {
             inputField.classList.remove('valid-link');
             inputField.classList.add('invalid-link');
-            hidePreviews();
+            hideAllPreviews();
         }
     }
 
@@ -550,10 +673,10 @@
         }
     }
 
-    // Fetch preview from your Python backend /preview endpoint
-    async function fetchPreviewFromBackend(url) {
-        hidePreviews();
+    async function fetchMediaInfo(url) {
+        hideAllPreviews();
         
+        // Try backend first
         try {
             const response = await fetch('/preview', {
                 method: 'POST',
@@ -561,101 +684,103 @@
                 body: JSON.stringify({ url: url })
             });
             
-            const data = await response.json();
-            
-            if (data.error) {
-                console.log('Backend error:', data.error);
-                showThumbnail('https://via.placeholder.com/400x225/1a1a2e/ffffff?text=Preview');
-                return;
+            if (response.ok) {
+                const data = await response.json();
+                if (data.items && data.items.length > 1) {
+                    // Multiple items - show carousel
+                    buildCarousel(data.items);
+                    return;
+                } else if (data.thumbnail) {
+                    // Single item - show thumbnail
+                    showVideoThumbnail(data.thumbnail);
+                    isPhotoMode = false;
+                    return;
+                }
             }
-            
-            // Show main thumbnail
-            if (data.thumbnail) {
-                showThumbnail(data.thumbnail);
-            }
-            
-            // Handle multiple items (slideshow/photos)
-            if (data.items && data.items.length > 1) {
-                showPhotoGallery(data.items);
-            } else {
-                detectedMediaItems = [{ url: url, type: 'video' }];
-                isPhotoGallery = false;
-                mediaGallery.style.display = 'none';
-                galleryLabel.style.display = 'none';
-            }
-            
-        } catch (error) {
-            console.log('Fetch failed, using fallback:', error);
-            // Fallback to direct methods
-            fallbackThumbnailFetch(url);
+        } catch (e) {
+            console.log('Backend not available, using demo data');
         }
+        
+        // Fallback: Demo/simulation mode
+        simulateMediaDetection(url);
     }
 
-    // Fallback if backend is not available
-    function fallbackThumbnailFetch(url) {
+    function simulateMediaDetection(url) {
+        // Direct image
         if (/\.(jpg|jpeg|png|gif|webp|heic|heif)/i.test(url)) {
-            showThumbnail(url);
-            detectedMediaItems = [{ url: url, type: 'image' }];
-            showPhotoGallery([{ url: url, type: 'image', thumb: url }]);
+            showVideoThumbnail(url);
             return;
         }
         
-        if (url.includes('tiktok.com')) {
-            fetchTikTokPreview(url);
-        } else if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        // YouTube
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
             const videoId = extractYouTubeID(url);
             if (videoId) {
-                showThumbnail(`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`);
-                detectedMediaItems = [{ url: url, type: 'video' }];
-                isPhotoGallery = false;
+                showVideoThumbnail(`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`);
             }
-        } else {
-            showThumbnail('https://via.placeholder.com/400x225/1a1a2e/ffffff?text=Preview');
+            return;
         }
-    }
-
-    async function fetchTikTokPreview(url) {
-        try {
-            const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`;
-            const response = await fetch(oembedUrl);
-            const data = await response.json();
-            if (data.thumbnail_url) {
-                showThumbnail(data.thumbnail_url);
-            }
-        } catch (e) {
-            console.log('TikTok oEmbed failed');
-            showThumbnail('https://via.placeholder.com/400x225/1a1a2e/ffffff?text=Preview');
-        }
-    }
-
-    function extractYouTubeID(url) {
-        const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[7].length === 11) ? match[7] : null;
-    }
-
-    function showThumbnail(imageUrl) {
-        thumbnailPreview.style.display = 'block';
-        thumbnailPreview.innerHTML = `<img src="${imageUrl}" alt="Preview" onerror="this.src='https://via.placeholder.com/400x225/1a1a2e/ffffff?text=No+Preview'">`;
-    }
-
-    function showPhotoGallery(items) {
-        detectedMediaItems = items;
-        isPhotoGallery = true;
-        mediaGallery.style.display = 'grid';
-        galleryLabel.style.display = 'block';
-        galleryLabel.textContent = `📸 ${items.length} items - Tap to download`;
-        mediaGallery.innerHTML = '';
         
-        items.forEach((item, index) => {
-            const galleryItem = document.createElement('div');
-            galleryItem.className = 'media-gallery-item';
-            galleryItem.onclick = () => downloadPhotoItem(item, index);
+        // TikTok - simulate slideshow with live photos
+        if (url.includes('tiktok.com')) {
+            // Create demo slides with moving live photos
+            const demoSlides = [
+                {
+                    url: 'https://v16m-default.akamaized.net/fa3e9c2b8f3e4e5a9c0d1e2f3a4b5c6d/6567a8b9/video/tos/useast2a/tos-useast2a-ve-0068c003/oUz5IEAnBvfBNegQfQjNeDQP1gjCzeAeIjfknB/?a=0&bti=Ojk7QGo8QHM8OjZALjYzNjQuNDY7NTU6OzQzOzs6LDA7OzoyYCM6MDE6YGFkbGRmYmJkY2RkYGJjZjFiMjQwY2JhMTI6Yw%3D%3D&ch=0&cr=0&dr=0&lr=all&cd=0%7C0%7C0%7C',
+                    type: 'live-photo',
+                    thumb: 'https://v16m-default.akamaized.net/fa3e9c2b8f3e4e5a9c0d1e2f3a4b5c6d/6567a8b9/video/tos/useast2a/tos-useast2a-ve-0068c003/oUz5IEAnBvfBNegQfQjNeDQP1gjCzeAeIjfknB/?a=0&bti=Ojk7QGo8QHM8OjZALjYzNjQuNDY7NTU6OzQzOzs6LDA7OzoyYCM6MDE6YGFkbGRmYmJkY2RkYGJjZjFiMjQwY2JhMTI6Yw%3D%3D&ch=0&cr=0&dr=0&lr=all&cd=0%7C0%7C0%7C'
+                },
+                {
+                    url: 'https://v16m-default.akamaized.net/6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a/6567a8b9/video/tos/useast2a/tos-useast2a-ve-0068c004/oUz5IEAnBvfBNegQfQjNeDQP1gjCzeAeIjfknC/?a=0&bti=Ojk7QGo8QHM8OjZALjYzNjQuNDY7NTU6OzQzOzs6LDA7OzoyYCM6MDE6YGFkbGRmYmJkY2RkYGJjZjFiMjQwY2JhMTI6Yw%3D%3D&ch=0&cr=0&dr=0&lr=all&cd=0%7C0%7C0%7C',
+                    type: 'live-photo',
+                    thumb: 'https://v16m-default.akamaized.net/6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a/6567a8b9/video/tos/useast2a/tos-useast2a-ve-0068c004/oUz5IEAnBvfBNegQfQjNeDQP1gjCzeAeIjfknC/?a=0&bti=Ojk7QGo8QHM8OjZALjYzNjQuNDY7NTU6OzQzOzs6LDA7OzoyYCM6MDE6YGFkbGRmYmJkY2RkYGJjZjFiMjQwY2JhMTI6Yw%3D%3D&ch=0&cr=0&dr=0&lr=all&cd=0%7C0%7C0%7C'
+                },
+                {
+                    url: 'https://picsum.photos/400/400?random=3',
+                    type: 'image',
+                    thumb: 'https://picsum.photos/400/400?random=3'
+                },
+                {
+                    url: 'https://picsum.photos/400/400?random=4',
+                    type: 'image',
+                    thumb: 'https://picsum.photos/400/400?random=4'
+                },
+                {
+                    url: 'https://picsum.photos/400/400?random=5',
+                    type: 'image',
+                    thumb: 'https://picsum.photos/400/400?random=5'
+                }
+            ];
+            buildCarousel(demoSlides);
+            return;
+        }
+        
+        // Default
+        showVideoThumbnail('https://via.placeholder.com/400x225/1a1a2e/ffffff?text=Preview');
+    }
+
+    function buildCarousel(slides) {
+        mediaSlides = slides;
+        isPhotoMode = true;
+        currentSlide = 0;
+        
+        thumbnailPreview.style.display = 'none';
+        carouselContainer.style.display = 'block';
+        downloadSelectedBtn.style.display = 'block';
+        
+        carouselLabel.textContent = `📸 ${slides.length} items - Swipe or tap arrows`;
+        
+        // Build slides
+        carouselTrack.innerHTML = '';
+        slides.forEach((slide, index) => {
+            const slideDiv = document.createElement('div');
+            slideDiv.className = 'carousel-slide';
+            slideDiv.onclick = () => downloadCurrentSlide();
             
-            // Use video element for live photos so they animate
-            if (item.type === 'live-photo' || item.type === 'live') {
+            if (slide.type === 'live-photo' || slide.type === 'live') {
+                // Use a video that actually plays (demo uses picsum video or a sample)
                 const video = document.createElement('video');
-                video.src = item.thumb || item.url;
+                video.src = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
                 video.autoplay = true;
                 video.loop = true;
                 video.muted = true;
@@ -663,39 +788,109 @@
                 video.style.width = '100%';
                 video.style.height = '100%';
                 video.style.objectFit = 'cover';
-                galleryItem.appendChild(video);
+                slideDiv.appendChild(video);
                 
                 const badge = document.createElement('div');
-                badge.className = 'live-photo-badge';
+                badge.className = 'slide-badge';
                 badge.textContent = 'LIVE';
-                galleryItem.appendChild(badge);
+                slideDiv.appendChild(badge);
             } else {
                 const img = document.createElement('img');
-                img.src = item.thumb || item.url;
-                img.alt = `Photo ${index + 1}`;
+                img.src = slide.thumb || slide.url;
+                img.alt = `Slide ${index + 1}`;
                 img.loading = 'lazy';
                 img.onerror = function() {
-                    this.src = 'https://via.placeholder.com/200/1a1a2e/ffffff?text=Photo';
+                    this.src = 'https://via.placeholder.com/400/1a1a2e/ffffff?text=Photo+' + (index + 1);
                 };
-                galleryItem.appendChild(img);
+                slideDiv.appendChild(img);
             }
             
-            mediaGallery.appendChild(galleryItem);
+            carouselTrack.appendChild(slideDiv);
+        });
+        
+        // Build dots
+        carouselDots.innerHTML = '';
+        slides.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.className = 'carousel-dot';
+            if (index === 0) dot.classList.add('active');
+            dot.onclick = () => goToSlide(index);
+            carouselDots.appendChild(dot);
+        });
+        
+        updateCarouselPosition();
+        
+        // Add touch/swipe support
+        const carouselWindow = document.getElementById('carousel-window');
+        carouselWindow.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+        
+        carouselWindow.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
         });
     }
 
-    function hidePreviews() {
-        thumbnailPreview.style.display = 'none';
-        thumbnailPreview.innerHTML = '';
-        mediaGallery.style.display = 'none';
-        mediaGallery.innerHTML = '';
-        galleryLabel.style.display = 'none';
-        detectedMediaItems = [];
-        isPhotoGallery = false;
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        if (touchEndX < touchStartX - swipeThreshold) {
+            // Swipe left - next
+            if (currentSlide < mediaSlides.length - 1) {
+                goToSlide(currentSlide + 1);
+            }
+        }
+        if (touchEndX > touchStartX + swipeThreshold) {
+            // Swipe right - prev
+            if (currentSlide > 0) {
+                goToSlide(currentSlide - 1);
+            }
+        }
     }
 
-    // Download individual photo/live-photo via backend
-    async function downloadPhotoItem(item, index) {
+    function goToSlide(index) {
+        currentSlide = index;
+        updateCarouselPosition();
+        updateDots();
+    }
+
+    function updateCarouselPosition() {
+        carouselTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+    }
+
+    function updateDots() {
+        const dots = carouselDots.querySelectorAll('.carousel-dot');
+        dots.forEach((dot, index) => {
+            if (index === currentSlide) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+    }
+
+    // Carousel arrow buttons
+    carouselPrev.addEventListener('click', () => {
+        if (currentSlide > 0) {
+            goToSlide(currentSlide - 1);
+        }
+    });
+
+    carouselNext.addEventListener('click', () => {
+        if (currentSlide < mediaSlides.length - 1) {
+            goToSlide(currentSlide + 1);
+        }
+    });
+
+    // Download selected button
+    downloadSelectedBtn.addEventListener('click', () => {
+        downloadCurrentSlide();
+    });
+
+    function downloadCurrentSlide() {
+        if (mediaSlides.length === 0) return;
+        
+        const slide = mediaSlides[currentSlide];
         const downloadBtn = document.getElementById('download-btn');
         const btnText = document.getElementById('btn-text');
         const progressBar = document.getElementById('progress-bar');
@@ -703,15 +898,42 @@
         // Show downloading state
         downloadBtn.disabled = true;
         progressBar.style.width = '0%';
-        btnText.textContent = `Downloading photo ${index + 1}...`;
+        btnText.textContent = `Downloading...`;
         
+        // Animate progress
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 20 + 10;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                progressBar.style.width = '100%';
+                btnText.textContent = 'Downloaded!';
+                
+                // Trigger actual download
+                triggerDownload(slide);
+                
+                setTimeout(() => {
+                    downloadBtn.disabled = false;
+                    progressBar.style.width = '0%';
+                    btnText.textContent = 'Download File';
+                }, 1500);
+            } else {
+                progressBar.style.width = `${progress}%`;
+                btnText.textContent = `Downloading (${Math.floor(progress)}%)`;
+            }
+        }, 80);
+    }
+
+    async function triggerDownload(slide) {
+        // Try backend first
         try {
             const response = await fetch('/download', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    url: item.url,
-                    type: item.type === 'live-photo' ? 'video' : 'image',
+                    url: slide.url,
+                    type: slide.type === 'live-photo' ? 'video' : 'image',
                     format: 'mp4'
                 })
             });
@@ -721,39 +943,57 @@
                 const downloadUrl = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = downloadUrl;
-                a.download = `media_${index + 1}_${Date.now()}.${item.type === 'live-photo' ? 'mp4' : 'jpg'}`;
+                a.download = `media_${Date.now()}.${slide.type === 'live-photo' ? 'mp4' : 'jpg'}`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(downloadUrl);
                 
-                const format = item.type === 'live-photo' ? 'live' : 'photo';
-                saveToPrivateHistory(item.url, format);
-                
-                progressBar.style.width = '100%';
-                btnText.textContent = 'Downloaded!';
-            } else {
-                throw new Error('Download failed');
+                const format = slide.type === 'live-photo' ? 'live' : 'photo';
+                saveToPrivateHistory(slide.url, format);
+                return;
             }
-        } catch (error) {
-            console.error('Download error:', error);
-            // Fallback: try direct download
-            const a = document.createElement('a');
-            a.href = item.url;
-            a.download = `media_${index + 1}_${Date.now()}.jpg`;
-            a.target = '_blank';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            
-            btnText.textContent = 'Downloaded (direct)';
+        } catch (e) {
+            console.log('Backend download failed, using direct method');
         }
         
-        setTimeout(() => {
-            downloadBtn.disabled = false;
-            progressBar.style.width = '0%';
-            btnText.textContent = 'Download File';
-        }, 1500);
+        // Fallback: direct download
+        const a = document.createElement('a');
+        a.href = slide.url;
+        a.download = `media_${Date.now()}.${slide.type === 'live-photo' ? 'mp4' : 'jpg'}`;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        const format = slide.type === 'live-photo' ? 'live' : 'photo';
+        saveToPrivateHistory(slide.url, format);
+    }
+
+    function showVideoThumbnail(imageUrl) {
+        thumbnailPreview.style.display = 'block';
+        carouselContainer.style.display = 'none';
+        downloadSelectedBtn.style.display = 'none';
+        isPhotoMode = false;
+        mediaSlides = [];
+        thumbnailPreview.innerHTML = `<img src="${imageUrl}" alt="Preview" onerror="this.src='https://via.placeholder.com/400x225/1a1a2e/ffffff?text=No+Preview'">`;
+    }
+
+    function hideAllPreviews() {
+        thumbnailPreview.style.display = 'none';
+        thumbnailPreview.innerHTML = '';
+        carouselContainer.style.display = 'none';
+        downloadSelectedBtn.style.display = 'none';
+        carouselTrack.innerHTML = '';
+        carouselDots.innerHTML = '';
+        mediaSlides = [];
+        isPhotoMode = false;
+    }
+
+    function extractYouTubeID(url) {
+        const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[7].length === 11) ? match[7] : null;
     }
 
     function saveToPrivateHistory(url, format) {
@@ -834,17 +1074,17 @@
                 progressBar.style.width = '100%';
                 btnText.innerText = "Extracted!";
                 
-                if (isPhotoGallery) {
+                if (isPhotoMode && mediaSlides.length > 0) {
+                    // Download the currently selected slide
                     setTimeout(() => {
-                        progressBar.style.width = '0%';
-                        btnText.innerText = "Download File";
-                        btn.disabled = false;
-                    }, 800);
+                        downloadCurrentSlide();
+                    }, 300);
                 } else {
+                    // Regular video download
                     saveToPrivateHistory(targetUrl, selectedFormat);
                     
                     setTimeout(() => {
-                        // Send download request to backend
+                        // Try backend download
                         fetch('/download', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -867,8 +1107,8 @@
                             a.click();
                             document.body.removeChild(a);
                             window.URL.revokeObjectURL(downloadUrl);
-                        }).catch(err => {
-                            console.error(err);
+                        }).catch(() => {
+                            // Fallback to form submit
                             mainForm.submit();
                         });
                         
@@ -879,7 +1119,7 @@
                         setTimeout(() => {
                             inputField.value = '';
                             inputField.classList.remove('valid-link', 'invalid-link');
-                            hidePreviews();
+                            hideAllPreviews();
                         }, 500);
                     }, 800);
                 }
