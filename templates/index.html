@@ -311,20 +311,6 @@
             text-align: left;
         }
 
-        /* Coming soon banner */
-        .coming-soon-banner {
-            display: none;
-            background: rgba(255, 59, 48, 0.1);
-            border: 1px solid var(--accent-color);
-            border-radius: 12px;
-            padding: 12px 16px;
-            margin: 12px 0;
-            color: var(--text-main);
-            font-weight: 500;
-            font-size: 14px;
-            text-align: center;
-        }
-
         .recent-container {
             background: var(--panel-bg);
             backdrop-filter: blur(20px);
@@ -470,11 +456,6 @@
         <div class="gallery-label" id="gallery-label">📸 Tap image to download</div>
         <div class="media-gallery" id="media-gallery"></div>
 
-        <!-- Coming soon banner -->
-        <div class="coming-soon-banner" id="coming-soon-banner">
-            ⏳ Download photos and live photos coming soon!
-        </div>
-
         <button type="submit" id="download-btn">
             <div class="btn-progress-bar" id="progress-bar"></div>
             <span class="btn-text-content" id="btn-text">Download File</span>
@@ -512,7 +493,6 @@
     const thumbnailPreview = document.getElementById('thumbnail-preview');
     const mediaGallery = document.getElementById('media-gallery');
     const galleryLabel = document.getElementById('gallery-label');
-    const comingSoonBanner = document.getElementById('coming-soon-banner');
     
     // Store detected media items for click-to-download
     let detectedMediaItems = [];
@@ -654,7 +634,6 @@
         isPhotoGallery = true;
         mediaGallery.style.display = 'grid';
         galleryLabel.style.display = 'block';
-        comingSoonBanner.style.display = 'block';  // Show coming soon banner
         mediaGallery.innerHTML = '';
         
         items.forEach((item, index) => {
@@ -689,15 +668,23 @@
         mediaGallery.style.display = 'none';
         mediaGallery.innerHTML = '';
         galleryLabel.style.display = 'none';
-        comingSoonBanner.style.display = 'none';
         detectedMediaItems = [];
         isPhotoGallery = false;
     }
 
-    // NEW: Download individual photo/live-photo item - NOW SHOWS COMING SOON
+    // NEW: Download individual photo/live-photo item
     function downloadPhotoItem(item, index) {
-        alert('Download photos and live photos coming soon!');
-        // Do not download
+        const a = document.createElement('a');
+        a.href = item.url;
+        a.download = `media_${index}_${Date.now()}.${item.type === 'live-photo' ? 'mov' : 'jpg'}`;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        // Save to history
+        const format = item.type === 'live-photo' ? 'live' : 'photo';
+        saveToPrivateHistory(item.url, format);
     }
 
     function saveToPrivateHistory(url, format) {
@@ -774,13 +761,13 @@
                 progressBar.style.width = '100%';
                 btnText.innerText = "Extracted!";
                 
-                // If it's a photo gallery, show coming soon message and reset
+                // If it's a photo gallery, don't auto-download - user clicks photos
                 if (isPhotoGallery) {
-                    alert('Download photos and live photos coming soon!');
                     setTimeout(() => {
                         progressBar.style.width = '0%';
                         btnText.innerText = "Download File";
                         btn.disabled = false;
+                        // Keep the input and preview visible for photo selection
                     }, 800);
                 } else {
                     // Auto-download for videos
@@ -825,4 +812,4 @@
 </script>
 
 </body>
-</html>
+</html> 
