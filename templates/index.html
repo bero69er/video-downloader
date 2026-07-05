@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -64,21 +65,21 @@
             margin-bottom: 24px;
         }
 
-        h1 { 
-            font-size: 32px; 
+        h1 {
+            font-size: 32px;
             font-weight: 700;
             letter-spacing: -0.5px;
-            margin: 0 0 8px 0; 
+            margin: 0 0 8px 0;
             background: linear-gradient(180deg, #ffffff 0%, #a1a1a6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        p { 
-            color: var(--text-muted); 
-            font-size: 15px; 
+        p {
+            color: var(--text-muted);
+            font-size: 15px;
             line-height: 1.4;
-            margin: 0 0 8px 0; 
+            margin: 0 0 8px 0;
         }
 
         .supported-badge {
@@ -122,10 +123,10 @@
             transition: all 0.2s ease;
         }
 
-        .format-option:checked + .format-label {
+        .format-option:checked+.format-label {
             background: rgba(255, 255, 255, 0.1);
             color: var(--text-main);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
         .input-wrapper {
@@ -143,7 +144,7 @@
             color: #fff;
             font-size: 16px;
             transition: all 0.25s ease;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         input[type="text"].valid-link {
@@ -211,7 +212,7 @@
             align-items: center;
         }
 
-        button[type="submit"]:hover:not(:disabled) { 
+        button[type="submit"]:hover:not(:disabled) {
             transform: scale(0.99);
             opacity: 0.95;
         }
@@ -351,223 +352,247 @@
             text-align: left;
         }
 
-        .social-item:hover { opacity: 0.8; }
-        .social-icon { width: 18px; height: 18px; fill: currentColor; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .social-item:hover {
+            opacity: 0.8;
+        }
+
+        .social-icon {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <h1 id="title">🚀 Downloader</h1>
-    <p id="subtitle">Fastest Video Downloader made by Bero.</p>
-    <small class="supported-badge">Supported Platforms: <span>TikTok</span> <span>Snapchat</span></small>
-    
-    <form id="downloader-form" method="POST">
-        <div class="format-selector">
-            <input type="radio" id="mp4-option" name="format" value="mp4" checked class="format-option">
-            <label for="mp4-option" class="format-label">🎬 MP4 Video</label>
-            
-            <input type="radio" id="mp3-option" name="format" value="mp3" class="format-option">
-            <label for="mp3-option" class="format-label">🎵 MP3 Audio</label>
-        </div>
+    <div class="container">
+        <h1 id="title">🚀 Downloader</h1>
+        <p id="subtitle">Fastest Video Downloader made by Bero.</p>
+        <small class="supported-badge">Supported Platforms: <span>TikTok</span> <span>Snapchat</span></small>
 
-        <div class="input-wrapper">
-            <input type="text" name="url" id="url-input" placeholder="Paste link here..." required autocomplete="off">
-            <button type="button" class="paste-btn" id="shortcut-paste-btn">Paste</button>
-        </div>
-        <div class="error-message" id="url-error">Wrong link. Please enter a valid TikTok or Snapchat URL.</div>
+        <form id="downloader-form" method="POST">
+            <div class="format-selector">
+                <input type="radio" id="mp4-option" name="format" value="mp4" checked class="format-option">
+                <label for="mp4-option" class="format-label">🎬 MP4 Video</label>
 
-        <button type="submit" id="download-btn">
-            <div class="btn-progress-bar" id="progress-bar"></div>
-            <span class="btn-text-content" id="btn-text">Download File</span>
-        </button>
-    </form>
-
-    <div class="credits-container">
-        <div class="credits-title">Created by bero</div>
-        <div class="social-grid">
-            <div class="social-item">
-                <svg class="social-icon" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.094 13.094 0 0 1-1.873-.894.077.077 0 0 1-.008-.128c.126-.093.252-.19.372-.287a.075.075 0 0 1 .077-.011c3.92 1.793 8.18 1.793 12.061 0a.073.073 0 0 1 .078.009c.12.099.246.195.373.289a.077.077 0 0 1-.006.127 12.298 12.298 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.156 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.156 2.418z"/></svg>
-                <span>@v6se</span>
+                <input type="radio" id="mp3-option" name="format" value="mp3" class="format-option">
+                <label for="mp3-option" class="format-label">🎵 MP3 Audio</label>
             </div>
-            <div class="social-item">
-                <span class="social-icon">👻</span>
-                <span>@bero69er</span>
+
+            <div class="input-wrapper">
+                <input type="text" name="url" id="url-input" placeholder="Paste link here..." required autocomplete="off">
+                <button type="button" class="paste-btn" id="shortcut-paste-btn">Paste</button>
             </div>
-            <div class="social-item">
-                <svg class="social-icon" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.03 2.61-.01 3.91-.02.08 1.53.63 3.02 1.69 4.12 1.12 1.13 2.66 1.77 4.23 1.88v3.31c-1.63-.03-3.22-.55-4.52-1.54V14c.12 4.41-3.23 8.36-7.64 8.64-4.8.44-9.14-3.18-9.19-8 .04-4.57 3.85-8.45 8.42-8.52v3.32c-2.39.11-4.38 2.11-4.33 4.5.07 2.51 2.25 4.47 4.75 4.21 2.11-.15 3.75-1.94 3.66-4.06V0h.01z"/></svg>
-                <span>@userallz93wh4o</span>
+            <div class="error-message" id="url-error">Wrong link. Please enter a valid TikTok or Snapchat URL.</div>
+
+            <button type="submit" id="download-btn">
+                <div class="btn-progress-bar" id="progress-bar"></div>
+                <span class="btn-text-content" id="btn-text">Download File</span>
+            </button>
+        </form>
+
+        <div class="credits-container">
+            <div class="credits-title">Created by bero</div>
+            <div class="social-grid">
+                <div class="social-item">
+                    <svg class="social-icon" viewBox="0 0 24 24">
+                        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.094 13.094 0 0 1-1.873-.894.077.077 0 0 1-.008-.128c.126-.093.252-.19.372-.287a.075.075 0 0 1 .077-.011c3.92 1.793 8.18 1.793 12.061 0a.073.073 0 0 1 .078.009c.12.099.246.195.373.289a.077.077 0 0 1-.006.127 12.298 12.298 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.156 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.156 2.418z" />
+                    </svg>
+                    <span>@v6se</span>
+                </div>
+                <div class="social-item">
+                    <span class="social-icon">👻</span>
+                    <span>@bero69er</span>
+                </div>
+                <div class="social-item">
+                    <svg class="social-icon" viewBox="0 0 24 24">
+                        <path d="M12.525.02c1.31-.03 2.61-.01 3.91-.02.08 1.53.63 3.02 1.69 4.12 1.12 1.13 2.66 1.77 4.23 1.88v3.31c-1.63-.03-3.22-.55-4.52-1.54V14c.12 4.41-3.23 8.36-7.64 8.64-4.8.44-9.14-3.18-9.19-8 .04-4.57 3.85-8.45 8.42-8.52v3.32c-2.39.11-4.38 2.11-4.33 4.5.07 2.51 2.25 4.47 4.75 4.21 2.11-.15 3.75-1.94 3.66-4.06V0h.01z" />
+                    </svg>
+                    <span>@userallz93wh4o</span>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="recent-container" id="history-box">
-    <div class="recent-title">Your Recent Downloads</div>
-    <div class="recent-list" id="history-items-target"></div>
-</div>
+    <div class="recent-container" id="history-box">
+        <div class="recent-title">Your Recent Downloads</div>
+        <div class="recent-list" id="history-items-target"></div>
+    </div>
 
-<script>
-    const inputField = document.getElementById('url-input');
-    const errorMsg = document.getElementById('url-error');
-    const mainForm = document.getElementById('downloader-form');
+    <script>
+        const inputField = document.getElementById('url-input');
+        const errorMsg = document.getElementById('url-error');
+        const mainForm = document.getElementById('downloader-form');
 
-    function evaluateInput() {
-        const url = inputField.value.trim();
-        if (url === "") {
-            inputField.classList.remove('valid-link', 'invalid-link');
-            errorMsg.style.display = 'none';
-            return;
-        }
-
-        if (isValidLink(url)) {
-            inputField.classList.remove('invalid-link');
-            inputField.classList.add('valid-link');
-            errorMsg.style.display = 'none';
-        } else {
-            inputField.classList.remove('valid-link');
-            inputField.classList.add('invalid-link');
-        }
-    }
-
-    inputField.addEventListener('input', evaluateInput);
-
-    document.getElementById('shortcut-paste-btn').addEventListener('click', async () => {
-        try {
-            const clipboardText = await navigator.clipboard.readText();
-            if (clipboardText) {
-                inputField.value = clipboardText;
-                evaluateInput();
+        function evaluateInput() {
+            const url = inputField.value.trim();
+            if (url === "") {
+                inputField.classList.remove('valid-link', 'invalid-link');
+                errorMsg.style.display = 'none';
+                return;
             }
-        } catch (err) {
-            alert("Please long-press the field to paste manually on this browser.");
-        }
-    });
 
-    function isValidLink(url) {
-        if (!url.startsWith('http://') && !url.startsWith('https://')) return false;
-        try {
-            const parsed = new URL(url);
-            const host = parsed.hostname.toLowerCase();
-            return host.includes('tiktok.com') || 
-                   host.includes('snapchat.com') || 
-                   host.includes('v.douyin.com');
-        } catch (_) {
-            return false;
+            if (isValidLink(url)) {
+                inputField.classList.remove('invalid-link');
+                inputField.classList.add('valid-link');
+                errorMsg.style.display = 'none';
+            } else {
+                inputField.classList.remove('valid-link');
+                inputField.classList.add('invalid-link');
+            }
         }
-    }
 
-    function saveToPrivateHistory(url, format) {
-        let history = JSON.parse(localStorage.getItem('_private_extractor_history')) || [];
-        history = history.filter(item => item.url !== url);
-        history.unshift({ url: url, format: format, timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
-        if(history.length > 3) history.pop();
-        localStorage.setItem('_private_extractor_history', JSON.stringify(history));
-        renderPrivateHistory();
-    }
+        inputField.addEventListener('input', evaluateInput);
 
-    function renderPrivateHistory() {
-        const history = JSON.parse(localStorage.getItem('_private_extractor_history')) || [];
-        const box = document.getElementById('history-box');
-        const target = document.getElementById('history-items-target');
-        
-        if (history.length === 0) {
-            box.style.display = 'none';
-            return;
+        document.getElementById('shortcut-paste-btn').addEventListener('click', async () => {
+            try {
+                const clipboardText = await navigator.clipboard.readText();
+                if (clipboardText) {
+                    inputField.value = clipboardText;
+                    evaluateInput();
+                }
+            } catch (err) {
+                alert("Please long-press the field to paste manually on this browser.");
+            }
+        });
+
+        function isValidLink(url) {
+            if (!url.startsWith('http://') && !url.startsWith('https://')) return false;
+            try {
+                const parsed = new URL(url);
+                const host = parsed.hostname.toLowerCase();
+                return host.includes('tiktok.com') ||
+                    host.includes('snapchat.com') ||
+                    host.includes('v.douyin.com');
+            } catch (_) {
+                return false;
+            }
         }
-        
-        box.style.display = 'block';
-        target.innerHTML = '';
-        
-        history.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'recent-item';
-            div.innerHTML = `
+
+        function saveToPrivateHistory(url, format) {
+            let history = JSON.parse(localStorage.getItem('_private_extractor_history')) || [];
+            history = history.filter(item => item.url !== url);
+            history.unshift({
+                url: url,
+                format: format,
+                timestamp: new Date().toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+            });
+            if (history.length > 3) history.pop();
+            localStorage.setItem('_private_extractor_history', JSON.stringify(history));
+            renderPrivateHistory();
+        }
+
+        function renderPrivateHistory() {
+            const history = JSON.parse(localStorage.getItem('_private_extractor_history')) || [];
+            const box = document.getElementById('history-box');
+            const target = document.getElementById('history-items-target');
+
+            if (history.length === 0) {
+                box.style.display = 'none';
+                return;
+            }
+
+            box.style.display = 'block';
+            target.innerHTML = '';
+
+            history.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'recent-item';
+                div.innerHTML = `
                 <div class="recent-info">
                     <div class="recent-url">${item.url}</div>
                     <div class="recent-meta"><span class="badge">${item.format}</span>${item.timestamp}</div>
                 </div>
                 <span class="re-download-link" onclick="loadAndRunHistoricalLink('${item.url}', '${item.format}')">Load</span>
             `;
-            target.appendChild(div);
-        });
-    }
-
-    function loadAndRunHistoricalLink(url, format) {
-        inputField.value = url;
-        document.getElementById(`${format}-option`).checked = true;
-        evaluateInput();
-        
-        if (isValidLink(url)) {
-            executeExtractionSequence();
+                target.appendChild(div);
+            });
         }
-    }
 
-    function executeExtractionSequence() {
-        const targetUrl = inputField.value.trim();
-        const selectedFormat = document.querySelector('input[name="format"]:checked').value;
+        function loadAndRunHistoricalLink(url, format) {
+            inputField.value = url;
+            document.getElementById(`${format}-option`).checked = true;
+            evaluateInput();
 
-        const btn = document.getElementById('download-btn');
-        const btnText = document.getElementById('btn-text');
-        const progressBar = document.getElementById('progress-bar');
-        
-        btn.disabled = true;
-        progressBar.style.width = '0%';
-        btnText.innerText = "Extracting (0%)";
-
-        let progress = 0;
-        const interval = setInterval(() => {
-            let increment = Math.random() * 15 + 8;
-            
-            if (progress > 80) {
-                increment = Math.random() * 4 + 1;
+            if (isValidLink(url)) {
+                executeExtractionSequence();
             }
-            
-            progress += increment;
-            
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(interval);
-                progressBar.style.width = '100%';
-                btnText.innerText = "Extracted!";
-                
-                saveToPrivateHistory(targetUrl, selectedFormat);
-                
-                setTimeout(() => {
-                    progressBar.style.width = '0%';
-                    btnText.innerText = "Download File";
-                    btn.disabled = false;
-                    
-                    mainForm.submit();
-                    
+        }
+
+        function executeExtractionSequence() {
+            const targetUrl = inputField.value.trim();
+            const selectedFormat = document.querySelector('input[name="format"]:checked').value;
+
+            const btn = document.getElementById('download-btn');
+            const btnText = document.getElementById('btn-text');
+            const progressBar = document.getElementById('progress-bar');
+
+            btn.disabled = true;
+            progressBar.style.width = '0%';
+            btnText.innerText = "Extracting (0%)";
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                let increment = Math.random() * 15 + 8;
+
+                if (progress > 80) {
+                    increment = Math.random() * 4 + 1;
+                }
+
+                progress += increment;
+
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    progressBar.style.width = '100%';
+                    btnText.innerText = "Extracted!";
+
+                    saveToPrivateHistory(targetUrl, selectedFormat);
+
                     setTimeout(() => {
-                        inputField.value = '';
-                        inputField.classList.remove('valid-link', 'invalid-link');
-                    }, 500);
-                }, 800);
-            } else {
-                progressBar.style.width = `${progress}%`;
-                btnText.innerText = `Extracting (${Math.floor(progress)}%)`;
-            }
-        }, 100);
-    }
+                        progressBar.style.width = '0%';
+                        btnText.innerText = "Download File";
+                        btn.disabled = false;
 
-    renderPrivateHistory();
+                        mainForm.submit();
 
-    mainForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const targetUrl = inputField.value.trim();
-        
-        if (!isValidLink(targetUrl)) {
-            inputField.classList.remove('valid-link');
-            inputField.classList.add('invalid-link');
-            errorMsg.style.display = 'block';
-            return;
+                        setTimeout(() => {
+                            inputField.value = '';
+                            inputField.classList.remove('valid-link', 'invalid-link');
+                        }, 500);
+                    }, 800);
+                } else {
+                    progressBar.style.width = `${progress}%`;
+                    btnText.innerText = `Extracting (${Math.floor(progress)}%)`;
+                }
+            }, 100);
         }
 
-        executeExtractionSequence();
-    });
-</script>
+        renderPrivateHistory();
+
+        mainForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const targetUrl = inputField.value.trim();
+
+            if (!isValidLink(targetUrl)) {
+                inputField.classList.remove('valid-link');
+                inputField.classList.add('invalid-link');
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            executeExtractionSequence();
+        });
+    </script>
 
 </body>
+
 </html>
