@@ -56,9 +56,9 @@ def index():
 
     return render_template('index.html')
 
-@app.route('/get_info', methods=['POST'])
-def get_info():
-    """Endpoint to fetch video metadata (thumbnail, title, channel, duration)"""
+@app.route('/get_thumbnail', methods=['POST'])
+def get_thumbnail():
+    """Simple endpoint to get just the video thumbnail URL"""
     try:
         data = request.get_json()
         video_url = data.get('url')
@@ -75,28 +75,18 @@ def get_info():
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=False)
             
-            # Extract thumbnail - prefer max resolution
+            # Get the best thumbnail available
             thumbnail = info.get('thumbnail')
+            
+            # If no thumbnail, try to get from thumbnails list
             if not thumbnail and info.get('thumbnails'):
-                # Get the highest quality thumbnail
                 thumbnails = info.get('thumbnails', [])
                 if thumbnails:
+                    # Get the highest quality thumbnail (last one in list)
                     thumbnail = thumbnails[-1].get('url')
             
-            # Format duration
-            duration_seconds = info.get('duration', 0)
-            if duration_seconds:
-                minutes = duration_seconds // 60
-                seconds = duration_seconds % 60
-                duration = f"{minutes:02d}:{seconds:02d}"
-            else:
-                duration = "00:00"
-            
             return jsonify({
-                'title': info.get('title', 'Unknown Title'),
-                'channel': info.get('uploader') or info.get('channel') or 'Unknown Channel',
-                'thumbnail': thumbnail or '',
-                'duration': duration
+                'thumbnail': thumbnail or ''
             })
             
     except Exception as e:
