@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Extractor</title>
+    <style>
+        :root {
+            --bg-color: #08080a;
+            --panel-bg: rgba(22, 22, 26, 0.65);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-color: #ff3b30;
+            --accent-glow: rgba(255, 59, 48, 0.15);
+            --text-main: #f5f5f7;
+            --text-muted: #86868b;
+            --error-color: #ff453a;
+            --success-color: #30d158;
+            --success-glow: rgba(48, 209, 88, 0.2);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 0;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            background: var(--accent-color);
+            filter: blur(140px);
+            opacity: 0.12;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 40px 30px;
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            max-width: 420px;
+            width: 85%;
+            z-index: 1;
+            margin-bottom: 24px;
+        }
+
+        h1 { 
+            font-size: 32px; 
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin: 0 0 8px 0; 
+            background: linear-gradient(180deg, #ffffff 0%, #a1a1a6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p { 
+            color: var(--text-muted); 
+            font-size: 15px; 
+            line-height: 1.4;
+            margin: 0 0 8px 0; 
+        }
+
+        .supported-badge {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            display: block;
+            font-weight: 500;
+        }
+
+        .supported-badge span {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 6px;
+            margin: 0 2px;
+            font-size: 11px;
+        }
+
+        .format-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .format-option {
+            display: none;
+        }
+
+        .format-label {
+            padding: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 9px;
+            transition: all 0.2s ease;
+        }
+
+        .format-option:checked + .format-label {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 16px 80px 16px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            background-color: rgba(0, 0, 0, 0.25);
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.25s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        input[type="text"].valid-link {
+            border-color: var(--success-color) !important;
+            box-shadow: 0 0 0 4px var(--success-glow) !important;
+        }
+
+        input[type="text"].invalid-link {
+            border-color: var(--error-color) !important;
+            box-shadow: 0 0 0 4px rgba(255, 69, 58, 0.15) !important;
+        }
+
+        input[type="text"]:focus:not(.valid-link):not(.invalid-link) {
+            border-color: rgba(255, 59, 48, 0.5);
+            background-color: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+            outline: none;
+        }
+
+        .paste-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .paste-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 14px;
+            margin-top: -8px;
+            margin-bottom: 16px;
+            text-align: left;
+            padding-left: 4px;
+            display: none;
+        }
+
+        button[type="submit"] {
+            position: relative;
+            background-color: var(--text-main);
+            color: var(--bg-color);
+            border: none;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 14px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s ease;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button[type="submit"]:hover:not(:disabled) { 
+            transform: scale(0.99);
+            opacity: 0.95;
+        }
+
+        button[type="submit"]:disabled {
+            cursor: not-allowed;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+        }
+
+        .btn-progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background-color: rgba(255, 255, 255, 0.15);
+            transition: width 0.1s linear;
+            z-index: 1;
+        }
+
+        .btn-text-content {
+            position: relative;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .recent-container {
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 24px 30px;
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            max-width: 420px;
+            width: 85%;
+            z-index: 1;
+            text-align: left;
+            box-sizing: border-box;
+            display: none;
+        }
+
+        .recent-title {
+            font-size: 11px;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            font-weight: 700;
+        }
+
+        .recent-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .recent-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .recent-info {
+            display: flex;
+            flex-direction: column;
+            max-width: 70%;
+        }
+
+        .recent-url {
+            font-size: 13px;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .recent-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-right: 6px;
+        }
+
+        .re-download-link {
+            font-size: 12px;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .credits-container {
+            margin-top: 35px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .credits-title {
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        .social-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .social-item {
+            display: grid;
+            grid-template-columns: 20px 1fr;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 500;
+            transition: opacity 0.2s;
+            width: 160px;
+            text-align: left;
+        }
+
+        .social-item:hover { opacity: 0.8; }
+        .social-icon { width: 18px; height: 18px; fill: currentColor; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 id="title">🚀 Extractor</h1>
+    <p id="subtitle">Download clean 60 FPS media directly to your device.</p>
+    <small class="supported-badge">Supported Platforms: <span>YouTube</span> <span>TikTok</span> <span>Snapchat</span></small>
+    
+    <form id="downloader-form" method="POST">
+        <div class="format-selector">
+            <input type="radio" id="mp4-option" name="format" value="mp4" checked class="format-option">
+            <label for="mp4-option" class="format-label">🎬 MP4 Video</label>
+            
+            <input type="radio" id="mp3-option" name="format" value="mp3" class="format-option">
+            <label for="mp3-option" class="format-label">🎵 MP3 Audio</label>
+        </div>
+
+        <div class="input-wrapper">
+            <input type="text" name="url" id="url-input" placeholder="Paste link here..." required autocomplete="off">
+            <button type="button" class="paste-btn" id="shortcut-paste-btn">Paste</button>
+        </div>
+        <div class="error-message" id="url-error">Wrong link. Please enter a valid YouTube, TikTok, or Snapchat URL.</div>
+
+        <button type="submit" id="download-btn">
+            <div class="btn-progress-bar" id="progress-bar"></div>
+            <span class="btn-text-content" id="btn-text">Download File</span>
+        </button>
+    </form>
+
+    <div class="credits-container">
+        <div class="credits-title">Created by bero</div>
+        <div class="social-grid">
+            <div class="social-item">
+                <svg class="social-icon" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.094 13.094 0 0 1-1.873-.894.077.077 0 0 1-.008-.128c.126-.093.252-.19.372-.287a.075.075 0 0 1 .077-.011c3.92 1.793 8.18 1.793 12.061 0a.073.073 0 0 1 .078.009c.12.099.246.195.373.289a.077.077 0 0 1-.006.127 12.298 12.298 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.156 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.156 2.418z"/></svg>
+                <span>@v6se</span>
+            </div>
+            <div class="social-item">
+                <span class="social-icon">👻</span>
+                <span>@bero69er</span>
+            </div>
+            <div class="social-item">
+                <svg class="social-icon" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.03 2.61-.01 3.91-.02.08 1.53.63 3.02 1.69 4.12 1.12 1.13 2.66 1.77 4.23 1.88v3.31c-1.63-.03-3.22-.55-4.52-1.54V14c.12 4.41-3.23 8.36-7.64 8.64-4.8.44-9.14-3.18-9.19-8 .04-4.57 3.85-8.45 8.42-8.52v3.32c-2.39.11-4.38 2.11-4.33 4.5.07 2.51 2.25 4.47 4.75 4.21 2.11-.15 3.75-1.94 3.66-4.06V0h.01z"/></svg>
+                <span>@userallz93wh4o</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="recent-container" id="history-box">
+    <div class="recent-title">Your Recent Downloads</div>
+    <div class="recent-list" id="history-items-target"></div>
+</div>
+
+<script>
+    const inputField = document.getElementById('url-input');
+    const errorMsg = document.getElementById('url-error');
+
+    function evaluateInput() {
+        const url = inputField.value.trim();
+        if (url === "") {
+            inputField.classList.remove('valid-link', 'invalid-link');
+            errorMsg.style.display = 'none';
+            return;
+        }
+
+        if (isValidLink(url)) {
+            inputField.classList.remove('invalid-link');
+            inputField.classList.add('valid-link');
+            errorMsg.style.display = 'none';
+        } else {
+            inputField.classList.remove('valid-link');
+            inputField.classList.add('invalid-link');
+        }
+    }
+
+    inputField.addEventListener('input', evaluateInput);
+
+    document.getElementById('shortcut-paste-btn').addEventListener('click', async () => {
+        try {
+            const clipboardText = await navigator.clipboard.readText();
+            if (clipboardText) {
+                inputField.value = clipboardText;
+                evaluateInput();
+            }
+        } catch (err) {
+            alert("Please long-press the field to paste manually on this browser.");
+        }
+    });
+
+    function isValidLink(url) {
+        if (!url.startsWith('http://') && !url.startsWith('https://')) return false;
+        try {
+            const parsed = new URL(url);
+            const host = parsed.hostname.toLowerCase();
+            return host.includes('tiktok.com') || 
+                   host.includes('snapchat.com') || 
+                   host.includes('youtube.com') || 
+                   host.includes('youtu.be') || 
+                   host.includes('v.douyin.com');
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function saveToPrivateHistory(url, format) {
+        let history = JSON.parse(localStorage.getItem('_private_extractor_history')) || [];
+        history = history.filter(item => item.url !== url);
+        history.unshift({ url: url, format: format, timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
+        if(history.length > 3) history.pop();
+        localStorage.setItem('_private_extractor_history', JSON.stringify(history));
+        renderPrivateHistory();
+    }
+
+    function renderPrivateHistory() {
+        const history = JSON.parse(localStorage.getItem('_private_extractor_history')) || [];
+        const box = document.getElementById('history-box');
+        const target = document.getElementById('history-items-target');
+        
+        if (history.length === 0) {
+            box.style.display = 'none';
+            return;
+        }
+        
+        box.style.display = 'block';
+        target.innerHTML = '';
+        
+        history.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'recent-item';
+            div.innerHTML = `
+                <div class="recent-info">
+                    <div class="recent-url">${item.url}</div>
+                    <div class="recent-meta"><span class="badge">${item.format}</span>${item.timestamp}</div>
+                </div>
+                <span class="re-download-link" onclick="loadHistoricalLink('${item.url}', '${item.format}')">Load</span>
+            `;
+            target.appendChild(div);
+        });
+    }
+
+    function loadHistoricalLink(url, format) {
+        inputField.value = url;
+        document.getElementById(`${format}-option`).checked = true;
+        evaluateInput();
+    }
+
+    renderPrivateHistory();
+
+    document.getElementById('downloader-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = this;
+        const targetUrl = inputField.value.trim();
+        const selectedFormat = document.querySelector('input[name="format"]:checked').value;
+        
+        if (!isValidLink(targetUrl)) {
+            inputField.classList.remove('valid-link');
+            inputField.classList.add('invalid-link');
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        const btn = document.getElementById('download-btn');
+        const btnText = document.getElementById('btn-text');
+        const progressBar = document.getElementById('progress-bar');
+        
+        btn.disabled = true;
+        progressBar.style.width = '0%';
+        btnText.innerText = "Connecting...";
+
+        setTimeout(() => {
+            btnText.innerText = "Analyzing Tracks...";
+            
+            setTimeout(() => {
+                const networkSpeedMbps = (navigator.connection && navigator.connection.downlink) ? navigator.connection.downlink : 15; 
+                const networkSpeedBytesPerSec = (networkSpeedMbps * 1024 * 1024) / 8;
+                const mockFileSize = (Math.random() * (selectedFormat === 'mp3' ? [8 - 3] + 3 : [45 - 18] + 18)) * 1024 * 1024;
+                const totalDurationMs = (mockFileSize / networkSpeedBytesPerSec) * 1000;
+                
+                let currentProgress = 0;
+                const progressInterval = setInterval(() => {
+                    const fluctuation = Math.random() * (1.3 - 0.7) + 0.7;
+                    currentProgress += ((100 / totalDurationMs) * 100) * fluctuation;
+                    
+                    if (currentProgress >= 100) {
+                        currentProgress = 100;
+                        progressBar.style.width = '100%';
+                        btnText.innerText = "Encoding File...";
+                        clearInterval(progressInterval);
+                        
+                        setTimeout(() => {
+                            saveToPrivateHistory(targetUrl, selectedFormat);
+                            progressBar.style.width = '0%';
+                            btnText.innerText = "Download File";
+                            inputField.classList.remove('valid-link', 'invalid-link');
+                            btn.disabled = false;
+                            form.submit();
+                        }, 900);
+                    } else {
+                        progressBar.style.width = `${currentProgress}%`;
+                        btnText.innerText = `Extracting (${Math.floor(currentProgress)}%)`;
+                    }
+                }, 100);
+            }, 1200);
+        }, 800);
+    });
+</script>
+
+</body>
+</html>
