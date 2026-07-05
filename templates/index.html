@@ -359,8 +359,8 @@
 
 <div class="container">
     <h1 id="title">🚀 Extractor</h1>
-    <p id="subtitle">Download clean 60 FPS media directly to your device.</p>
-    <small class="supported-badge">Supported Platforms: <span>YouTube</span> <span>TikTok</span> <span>Snapchat</span></small>
+    <p id="subtitle">Download clean media directly to your device.</p>
+    <small class="supported-badge">Supported Platforms: <span>TikTok</span> <span>Snapchat</span></small>
     
     <form id="downloader-form" method="POST">
         <div class="format-selector">
@@ -375,7 +375,7 @@
             <input type="text" name="url" id="url-input" placeholder="Paste link here..." required autocomplete="off">
             <button type="button" class="paste-btn" id="shortcut-paste-btn">Paste</button>
         </div>
-        <div class="error-message" id="url-error">Wrong link. Please enter a valid YouTube, TikTok, or Snapchat URL.</div>
+        <div class="error-message" id="url-error">Wrong link. Please enter a valid TikTok or Snapchat URL.</div>
 
         <button type="submit" id="download-btn">
             <div class="btn-progress-bar" id="progress-bar"></div>
@@ -451,8 +451,6 @@
             const host = parsed.hostname.toLowerCase();
             return host.includes('tiktok.com') || 
                    host.includes('snapchat.com') || 
-                   host.includes('youtube.com') || 
-                   host.includes('youtu.be') || 
                    host.includes('v.douyin.com');
         } catch (_) {
             return false;
