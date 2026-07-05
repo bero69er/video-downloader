@@ -229,7 +229,7 @@
             height: 100%;
             width: 0%;
             background-color: rgba(255, 255, 255, 0.15);
-            transition: width 0.1s linear;
+            transition: width 0.08s linear;
             z-index: 1;
         }
 
@@ -503,11 +503,12 @@
     renderPrivateHistory();
 
     document.getElementById('downloader-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = this;
         const targetUrl = inputField.value.trim();
         const selectedFormat = document.querySelector('input[name="format"]:checked').value;
         
         if (!isValidLink(targetUrl)) {
-            e.preventDefault();
             inputField.classList.remove('valid-link');
             inputField.classList.add('invalid-link');
             errorMsg.style.display = 'block';
@@ -519,10 +520,45 @@
         const progressBar = document.getElementById('progress-bar');
         
         btn.disabled = true;
-        progressBar.style.width = '50%';
-        btnText.innerText = "Extracting Media...";
-        
-        saveToPrivateHistory(targetUrl, selectedFormat);
+        progressBar.style.width = '0%';
+        btnText.innerText = "Extracting (0%)";
+
+        // Dynamic fluid loading progression calculation
+        let progress = 0;
+        const interval = setInterval(() => {
+            // Speed fluctuations to mimic actual streaming download frames
+            let increment = Math.random() * 15 + 5;
+            
+            // Deliberate realistic slow-down near the tail-end file preparation zone
+            if (progress > 75) {
+                increment = Math.random() * 3 + 1;
+            }
+            
+            progress += increment;
+            
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                progressBar.style.width = '100%';
+                btnText.innerText = "Extracted!";
+                
+                // Immediately drops link into history box before page submission triggers
+                saveToPrivateHistory(targetUrl, selectedFormat);
+                
+                setTimeout(() => {
+                    // Reset UI triggers and pass form actions to the backend python pipeline
+                    progressBar.style.width = '0%';
+                    btnText.innerText = "Download File";
+                    inputField.value = '';
+                    inputField.classList.remove('valid-link', 'invalid-link');
+                    btn.disabled = false;
+                    form.submit();
+                }, 800);
+            } else {
+                progressBar.style.width = `${progress}%`;
+                btnText.innerText = `Extracting (${Math.floor(progress)}%)`;
+            }
+        }, 120);
     });
 </script>
 
