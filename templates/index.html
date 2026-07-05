@@ -239,71 +239,93 @@
             pointer-events: none;
         }
 
-        /* Preview Display System */
-        .preview-pane {
-            margin-top: 24px;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 16px;
+        /* Thumbnail Preview Styles */
+        .thumbnail-container {
+            margin-top: 20px;
             padding: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 14px;
             border: 1px solid var(--border-color);
+            display: none;
+            text-align: left;
         }
 
-        .preview-pane h3 {
-            font-size: 14px;
-            margin: 0 0 12px 0;
-            color: var(--text-main);
-            font-weight: 600;
+        .thumbnail-container.visible {
+            display: block;
+            animation: fadeIn 0.3s ease;
         }
 
-        .single-thumbnail {
-            width: 100%;
-            max-height: 200px;
-            object-fit: cover;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            width: 100%;
-            margin-top: 8px;
+        .thumbnail-wrapper {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
         }
 
-        .grid-photo-wrapper {
-            position: relative;
-            aspect-ratio: 1;
-            cursor: pointer;
+        .thumbnail-image {
+            width: 120px;
+            height: 68px;
             border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: transform 0.2s;
-        }
-
-        .grid-photo-wrapper:hover {
-            transform: scale(1.03);
-        }
-
-        .grid-photo {
-            width: 100%;
-            height: 100%;
             object-fit: cover;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        .tap-to-download-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0,0,0,0.6);
-            color: #fff;
-            font-size: 9px;
-            padding: 2px 0;
-            font-weight: bold;
+        .thumbnail-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .thumbnail-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .thumbnail-channel {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .thumbnail-duration {
+            font-size: 11px;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .thumbnail-loading {
+            text-align: center;
+            padding: 12px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .thumbnail-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top: 2px solid var(--text-main);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .recent-container {
@@ -429,7 +451,7 @@
     <p id="subtitle">Download clean 60 FPS media directly to your device.</p>
     <small class="supported-badge">Supported Platforms: <span>YouTube</span> <span>TikTok</span> <span>Snapchat</span></small>
     
-    <form id="downloader-form">
+    <form id="downloader-form" method="POST">
         <div class="format-selector">
             <input type="radio" id="mp4-option" name="format" value="mp4" checked class="format-option">
             <label for="mp4-option" class="format-label">🎬 MP4 Video</label>
@@ -450,9 +472,16 @@
         </button>
     </form>
 
-    <div class="preview-pane" id="preview-section">
-        <h3 id="preview-heading">Extracted Media</h3>
-        <div id="preview-media-container" style="width: 100%;"></div>
+    <!-- Thumbnail Preview Container -->
+    <div class="thumbnail-container" id="thumbnail-container">
+        <div class="thumbnail-wrapper">
+            <img class="thumbnail-image" id="thumbnail-image" src="" alt="Video thumbnail">
+            <div class="thumbnail-info">
+                <div class="thumbnail-title" id="thumbnail-title">Video Title</div>
+                <div class="thumbnail-channel" id="thumbnail-channel">Channel Name</div>
+                <div class="thumbnail-duration" id="thumbnail-duration">00:00</div>
+            </div>
+        </div>
     </div>
 
     <div class="credits-container">
@@ -483,24 +512,32 @@
     const inputField = document.getElementById('url-input');
     const errorMsg = document.getElementById('url-error');
     const mainForm = document.getElementById('downloader-form');
-    const previewSection = document.getElementById('preview-section');
-    const previewContainer = document.getElementById('preview-media-container');
-    const previewHeading = document.getElementById('preview-heading');
+    const thumbnailContainer = document.getElementById('thumbnail-container');
+    const thumbnailImage = document.getElementById('thumbnail-image');
+    const thumbnailTitle = document.getElementById('thumbnail-title');
+    const thumbnailChannel = document.getElementById('thumbnail-channel');
+    const thumbnailDuration = document.getElementById('thumbnail-duration');
+
+    let thumbnailTimeout = null;
 
     function evaluateInput() {
         const url = inputField.value.trim();
         if (url === "") {
             inputField.classList.remove('valid-link', 'invalid-link');
             errorMsg.style.display = 'none';
+            thumbnailContainer.classList.remove('visible');
             return;
         }
+
         if (isValidLink(url)) {
             inputField.classList.remove('invalid-link');
             inputField.classList.add('valid-link');
             errorMsg.style.display = 'none';
+            fetchThumbnailInfo(url);
         } else {
             inputField.classList.remove('valid-link');
             inputField.classList.add('invalid-link');
+            thumbnailContainer.classList.remove('visible');
         }
     }
 
@@ -533,6 +570,58 @@
         }
     }
 
+    // Fetch thumbnail info from server
+    async function fetchThumbnailInfo(url) {
+        // Clear previous timeout
+        if (thumbnailTimeout) {
+            clearTimeout(thumbnailTimeout);
+        }
+
+        // Show loading state
+        thumbnailContainer.classList.add('visible');
+        thumbnailImage.src = '';
+        thumbnailTitle.textContent = 'Loading...';
+        thumbnailChannel.textContent = 'Fetching video info';
+        thumbnailDuration.textContent = '';
+
+        // Debounce: wait 500ms after user stops typing
+        thumbnailTimeout = setTimeout(async () => {
+            try {
+                const response = await fetch('/get_info', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch video info');
+                }
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Update thumbnail with fetched data
+                if (data.thumbnail) {
+                    thumbnailImage.src = data.thumbnail;
+                }
+                thumbnailTitle.textContent = data.title || 'Unknown Title';
+                thumbnailChannel.textContent = data.channel || 'Unknown Channel';
+                thumbnailDuration.textContent = data.duration || '00:00';
+                
+            } catch (error) {
+                console.error('Thumbnail fetch error:', error);
+                thumbnailTitle.textContent = 'Failed to load preview';
+                thumbnailChannel.textContent = 'Please try again';
+                thumbnailDuration.textContent = '';
+            }
+        }, 500);
+    }
+
     function saveToPrivateHistory(url, format) {
         let history = JSON.parse(localStorage.getItem('_private_extractor_history')) || [];
         history = history.filter(item => item.url !== url);
@@ -551,6 +640,7 @@
             box.style.display = 'none';
             return;
         }
+        
         box.style.display = 'block';
         target.innerHTML = '';
         
@@ -572,21 +662,13 @@
         inputField.value = url;
         document.getElementById(`${format}-option`).checked = true;
         evaluateInput();
+        
         if (isValidLink(url)) {
             executeExtractionSequence();
         }
     }
 
-    function downloadAssetDirectly(url, defaultName) {
-        const a = document.createElement('a');
-        a.href = `/stream-file?url=${encodeURIComponent(url)}`;
-        a.download = defaultName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
-
-    async function executeExtractionSequence() {
+    function executeExtractionSequence() {
         const targetUrl = inputField.value.trim();
         const selectedFormat = document.querySelector('input[name="format"]:checked').value;
 
@@ -598,111 +680,57 @@
         progressBar.style.width = '0%';
         btnText.innerText = "Extracting (0%)";
 
-        // Step 1: Start UI fake loading sequence to keep interactions looking fluid
         let progress = 0;
         const interval = setInterval(() => {
-            let increment = Math.random() * 12 + 6;
-            if (progress > 75) increment = Math.random() * 2 + 0.5;
-            progress += increment;
-            if (progress >= 92) {
-                progress = 92; // Pause near completion until real data returns
-                clearInterval(interval);
+            let increment = Math.random() * 15 + 8;
+            
+            if (progress > 80) {
+                increment = Math.random() * 4 + 1;
             }
-            progressBar.style.width = `${progress}%`;
-            btnText.innerText = `Extracting (${Math.floor(progress)}%)`;
-        }, 120);
-
-        try {
-            // Send requests asynchronously to backend route
-            const response = await fetch('/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: targetUrl, format: selectedFormat })
-            });
-
-            const data = await response.json();
-            clearInterval(interval);
-
-            if (data.success) {
+            
+            progress += increment;
+            
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
                 progressBar.style.width = '100%';
                 btnText.innerText = "Extracted!";
+                
                 saveToPrivateHistory(targetUrl, selectedFormat);
-
-                // Handle Display Elements
-                previewContainer.innerHTML = '';
-                previewSection.style.display = 'flex';
-
-                if (data.is_slideshow && data.images.length > 0) {
-                    // Slideshow Photos or Multi-Image Grid layout
-                    previewHeading.innerText = `Tap Image to Download (${data.images.length} Photos)`;
-                    const grid = document.createElement('div');
-                    grid.className = 'photo-grid';
-                    
-                    data.images.forEach((imgUrl, index) => {
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'grid-photo-wrapper';
-                        wrapper.onclick = () => downloadAssetDirectly(imgUrl, `photo_${index+1}.jpg`);
-                        
-                        wrapper.innerHTML = `
-                            <img src="${imgUrl}" class="grid-photo" alt="Photo element">
-                            <div class="tap-to-download-overlay">SAVE</div>
-                        `;
-                        grid.appendChild(wrapper);
-                    });
-                    previewContainer.appendChild(grid);
-                } else {
-                    // Single Standard Video Structure — Show single thumbnail, triggers AUTO DOWNLOAD
-                    previewHeading.innerText = "Video Thumbnail";
-                    const thumb = document.createElement('img');
-                    thumb.className = 'single-thumbnail';
-                    thumb.src = data.thumbnail;
-                    previewContainer.appendChild(thumb);
-
-                    // Auto download the file payload link
-                    if (data.direct_url) {
-                        downloadAssetDirectly(data.direct_url, 'extracted_video.mp4');
-                    }
-                }
-
-                // Clean and unlock buttons
+                
                 setTimeout(() => {
                     progressBar.style.width = '0%';
                     btnText.innerText = "Download File";
                     btn.disabled = false;
-                    inputField.value = '';
-                    inputField.classList.remove('valid-link', 'invalid-link');
-                }, 1000);
-
+                    
+                    mainForm.submit();
+                    
+                    setTimeout(() => {
+                        inputField.value = '';
+                        inputField.classList.remove('valid-link', 'invalid-link');
+                        thumbnailContainer.classList.remove('visible');
+                    }, 500);
+                }, 800);
             } else {
-                alert("Extraction failed: " + (data.error || "Unknown Error"));
-                resetUiState();
+                progressBar.style.width = `${progress}%`;
+                btnText.innerText = `Extracting (${Math.floor(progress)}%)`;
             }
-        } catch (err) {
-            clearInterval(interval);
-            alert("Server connection lost or failed to parse asset.");
-            resetUiState();
-        }
-    }
-
-    function resetUiState() {
-        const btn = document.getElementById('download-btn');
-        const btnText = document.getElementById('btn-text');
-        const progressBar = document.getElementById('progress-bar');
-        progressBar.style.width = '0%';
-        btnText.innerText = "Download File";
-        btn.disabled = false;
+        }, 100);
     }
 
     renderPrivateHistory();
 
     mainForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        if (!isValidLink(inputField.value.trim())) {
+        const targetUrl = inputField.value.trim();
+        
+        if (!isValidLink(targetUrl)) {
             inputField.classList.remove('valid-link');
             inputField.classList.add('invalid-link');
             errorMsg.style.display = 'block';
             return;
         }
+
         executeExtractionSequence();
     });
 </script>
