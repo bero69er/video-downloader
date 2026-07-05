@@ -576,10 +576,17 @@
         }
     }
 
-    // Fixed: Opens a secure asset window bypass layer to prevent HTML file downloads
-    function downloadAssetDirectly(url) {
+    // Fixed: Routes the download link using the secure server proxy endpoint to trigger real device saves
+    function downloadAssetDirectly(url, filename) {
         if (!url) return;
-        window.open(url, '_blank');
+        const proxyUrl = `/download-file?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
+        
+        const link = document.createElement('a');
+        link.href = proxyUrl;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     async function executeExtractionSequence() {
@@ -630,10 +637,13 @@
                     const grid = document.createElement('div');
                     grid.className = 'photo-grid';
                     
-                    data.images.forEach((imgUrl) => {
+                    data.images.forEach((imgUrl, idx) => {
                         const wrapper = document.createElement('div');
                         wrapper.className = 'grid-photo-wrapper';
-                        wrapper.onclick = () => downloadAssetDirectly(imgUrl);
+                        
+                        // Set specific image extension
+                        const extension = selectedFormat === 'mp3' ? 'mp3' : 'jpg';
+                        wrapper.onclick = () => downloadAssetDirectly(imgUrl, `media_photo_${idx + 1}.${extension}`);
                         
                         wrapper.innerHTML = `
                             <img src="${imgUrl}" class="grid-photo" alt="Media element">
@@ -650,7 +660,8 @@
                     previewContainer.appendChild(thumb);
 
                     if (data.direct_url) {
-                        downloadAssetDirectly(data.direct_url);
+                        const fileExt = selectedFormat === 'mp3' ? 'mp3' : 'mp4';
+                        downloadAssetDirectly(data.direct_url, `extracted_media.${fileExt}`);
                     }
                 }
 
@@ -668,7 +679,7 @@
             }
         } catch (err) {
             clearInterval(interval);
-            alert("Extraction completed. Asset deployed to browser tabs.");
+            alert("Connection error. Please try again.");
             resetUiState();
         }
     }
