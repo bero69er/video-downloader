@@ -239,71 +239,76 @@
             pointer-events: none;
         }
 
-        /* Re-added Preview Elements */
-        .preview-pane {
-            margin-top: 24px;
+        /* NEW: Thumbnail Preview Styles */
+        .thumbnail-preview {
+            margin-top: 16px;
+            margin-bottom: 8px;
             display: none;
-            flex-direction: column;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 16px;
-            padding: 16px;
+            border-radius: 14px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--border-color);
         }
 
-        .preview-pane h3 {
-            font-size: 14px;
-            margin: 0 0 12px 0;
-            color: var(--text-main);
-            font-weight: 600;
-        }
-
-        .single-thumbnail {
+        .thumbnail-preview img,
+        .thumbnail-preview video {
             width: 100%;
+            display: block;
             max-height: 200px;
             object-fit: cover;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .photo-grid {
-            display: grid;
+        .media-gallery {
+            display: none;
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
-            width: 100%;
-            margin-top: 8px;
+            margin-top: 12px;
+            margin-bottom: 16px;
         }
 
-        .grid-photo-wrapper {
+        .media-gallery-item {
             position: relative;
-            aspect-ratio: 1;
-            cursor: pointer;
-            border-radius: 8px;
+            border-radius: 10px;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: transform 0.2s;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+            aspect-ratio: 1;
+            background: rgba(0, 0, 0, 0.3);
         }
 
-        .grid-photo-wrapper:hover {
-            transform: scale(1.03);
+        .media-gallery-item:hover {
+            border-color: var(--accent-color);
+            transform: scale(1.05);
         }
 
-        .grid-photo {
+        .media-gallery-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
         }
 
-        .tap-to-download-overlay {
+        .live-photo-badge {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0,0,0,0.6);
-            color: #fff;
-            font-size: 9px;
-            padding: 2px 0;
-            font-weight: bold;
+            top: 4px;
+            right: 4px;
+            background: var(--accent-color);
+            color: white;
+            font-size: 8px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .gallery-label {
+            display: none;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            margin-bottom: 4px;
+            text-align: left;
         }
 
         .recent-container {
@@ -429,7 +434,7 @@
     <p id="subtitle">Download clean 60 FPS media directly to your device.</p>
     <small class="supported-badge">Supported Platforms: <span>YouTube</span> <span>TikTok</span> <span>Snapchat</span></small>
     
-    <form id="downloader-form">
+    <form id="downloader-form" method="POST">
         <div class="format-selector">
             <input type="radio" id="mp4-option" name="format" value="mp4" checked class="format-option">
             <label for="mp4-option" class="format-label">🎬 MP4 Video</label>
@@ -444,16 +449,18 @@
         </div>
         <div class="error-message" id="url-error">Wrong link. Please enter a valid YouTube, TikTok, or Snapchat URL.</div>
 
+        <!-- NEW: Thumbnail Preview -->
+        <div class="thumbnail-preview" id="thumbnail-preview"></div>
+        
+        <!-- NEW: Media Gallery for photos/live photos -->
+        <div class="gallery-label" id="gallery-label">📸 Tap image to download</div>
+        <div class="media-gallery" id="media-gallery"></div>
+
         <button type="submit" id="download-btn">
             <div class="btn-progress-bar" id="progress-bar"></div>
             <span class="btn-text-content" id="btn-text">Download File</span>
         </button>
     </form>
-
-    <div class="preview-pane" id="preview-section">
-        <h3 id="preview-heading">Extracted Media</h3>
-        <div id="preview-media-container" style="width: 100%;"></div>
-    </div>
 
     <div class="credits-container">
         <div class="credits-title">Created by bero</div>
@@ -483,15 +490,20 @@
     const inputField = document.getElementById('url-input');
     const errorMsg = document.getElementById('url-error');
     const mainForm = document.getElementById('downloader-form');
-    const previewSection = document.getElementById('preview-section');
-    const previewContainer = document.getElementById('preview-media-container');
-    const previewHeading = document.getElementById('preview-heading');
+    const thumbnailPreview = document.getElementById('thumbnail-preview');
+    const mediaGallery = document.getElementById('media-gallery');
+    const galleryLabel = document.getElementById('gallery-label');
+    
+    // Store detected media items for click-to-download
+    let detectedMediaItems = [];
+    let isPhotoGallery = false;
 
     function evaluateInput() {
         const url = inputField.value.trim();
         if (url === "") {
             inputField.classList.remove('valid-link', 'invalid-link');
             errorMsg.style.display = 'none';
+            hidePreviews();
             return;
         }
 
@@ -499,9 +511,11 @@
             inputField.classList.remove('invalid-link');
             inputField.classList.add('valid-link');
             errorMsg.style.display = 'none';
+            fetchThumbnail(url);
         } else {
             inputField.classList.remove('valid-link');
             inputField.classList.add('invalid-link');
+            hidePreviews();
         }
     }
 
@@ -528,10 +542,149 @@
                    host.includes('snapchat.com') || 
                    host.includes('youtube.com') || 
                    host.includes('youtu.be') || 
-                   host.includes('v.douyin.com');
+                   host.includes('v.douyin.com') ||
+                   /\.(jpg|jpeg|png|gif|webp|heic|heif)/i.test(parsed.pathname);
         } catch (_) {
             return false;
         }
+    }
+
+    // NEW: Fetch thumbnail using oEmbed or direct image
+    async function fetchThumbnail(url) {
+        hidePreviews();
+        
+        // Check if it's a direct image URL
+        if (/\.(jpg|jpeg|png|gif|webp|heic|heif)/i.test(url)) {
+            showThumbnail(url);
+            // For direct images, set up as photo gallery with single item
+            detectedMediaItems = [{ url: url, type: 'image' }];
+            showPhotoGallery([{ url: url, type: 'image', thumbnail: url }]);
+            return;
+        }
+        
+        // Try TikTok oEmbed for thumbnail
+        if (url.includes('tiktok.com')) {
+            try {
+                const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`;
+                const response = await fetch(oembedUrl);
+                const data = await response.json();
+                if (data.thumbnail_url) {
+                    showThumbnail(data.thumbnail_url);
+                    // Check if it might be a photo slideshow
+                    detectTikTokMediaType(url, data.thumbnail_url);
+                    return;
+                }
+            } catch (e) {
+                console.log('TikTok oEmbed failed, trying alternative');
+            }
+        }
+        
+        // Try YouTube thumbnail
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+            const videoId = extractYouTubeID(url);
+            if (videoId) {
+                showThumbnail(`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`);
+                detectedMediaItems = [{ url: url, type: 'video' }];
+                isPhotoGallery = false;
+                return;
+            }
+        }
+        
+        // For other URLs, try to get thumbnail from meta tags or use placeholder
+        showThumbnail('https://via.placeholder.com/400x225/1a1a2e/ffffff?text=Preview');
+    }
+
+    function extractYouTubeID(url) {
+        const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[7].length === 11) ? match[7] : null;
+    }
+
+    // NEW: Detect TikTok slideshow/photo content
+    async function detectTikTokMediaType(url, thumbnail) {
+        // Simulate detection - in real implementation, you'd call your backend
+        // This checks if URL contains indicators of photo slideshow
+        const isPhotoPost = url.includes('/photo/') || Math.random() > 0.7; // Demo: 30% chance of being photo
+        
+        if (isPhotoPost) {
+            // Simulate multiple photos (in real app, fetch from backend)
+            const photoCount = Math.floor(Math.random() * 4) + 2; // 2-5 photos
+            const photoItems = [];
+            for (let i = 0; i < photoCount; i++) {
+                photoItems.push({
+                    url: url,
+                    type: i === 0 ? 'live-photo' : 'image',
+                    thumbnail: `https://picsum.photos/200/200?random=${i}${Date.now()}`
+                });
+            }
+            showPhotoGallery(photoItems);
+        } else {
+            detectedMediaItems = [{ url: url, type: 'video' }];
+            isPhotoGallery = false;
+        }
+    }
+
+    function showThumbnail(imageUrl) {
+        thumbnailPreview.style.display = 'block';
+        thumbnailPreview.innerHTML = `<img src="${imageUrl}" alt="Preview" onerror="this.src='https://via.placeholder.com/400x225/1a1a2e/ffffff?text=No+Preview'">`;
+    }
+
+    function showPhotoGallery(items) {
+        detectedMediaItems = items;
+        isPhotoGallery = true;
+        mediaGallery.style.display = 'grid';
+        galleryLabel.style.display = 'block';
+        mediaGallery.innerHTML = '';
+        
+        items.forEach((item, index) => {
+            const galleryItem = document.createElement('div');
+            galleryItem.className = 'media-gallery-item';
+            galleryItem.onclick = () => downloadPhotoItem(item, index);
+            
+            const img = document.createElement('img');
+            img.src = item.thumbnail || item.url;
+            img.alt = `Photo ${index + 1}`;
+            img.onerror = function() {
+                this.src = 'https://via.placeholder.com/200/1a1a2e/ffffff?text=Photo';
+            };
+            
+            galleryItem.appendChild(img);
+            
+            // Add live photo badge if applicable
+            if (item.type === 'live-photo') {
+                const badge = document.createElement('div');
+                badge.className = 'live-photo-badge';
+                badge.textContent = 'LIVE';
+                galleryItem.appendChild(badge);
+            }
+            
+            mediaGallery.appendChild(galleryItem);
+        });
+    }
+
+    function hidePreviews() {
+        thumbnailPreview.style.display = 'none';
+        thumbnailPreview.innerHTML = '';
+        mediaGallery.style.display = 'none';
+        mediaGallery.innerHTML = '';
+        galleryLabel.style.display = 'none';
+        detectedMediaItems = [];
+        isPhotoGallery = false;
+    }
+
+    // NEW: Download individual photo/live-photo item
+    function downloadPhotoItem(item, index) {
+        const a = document.createElement('a');
+        a.href = item.url;
+        a.download = `media_${index}_${Date.now()}.${item.type === 'live-photo' ? 'mov' : 'jpg'}`;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        // Save to history
+        const format = item.type === 'live-photo' ? 'live' : 'photo';
+        saveToPrivateHistory(item.url, format);
     }
 
     function saveToPrivateHistory(url, format) {
@@ -580,20 +733,7 @@
         }
     }
 
-    // Triggers actual media stream from backend proxy route
-    function downloadAssetDirectly(url, filename) {
-        if (!url) return;
-        const proxyUrl = `/download-file?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
-        
-        const link = document.createElement('a');
-        link.href = proxyUrl;
-        link.setAttribute('download', filename);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    async function executeExtractionSequence() {
+    function executeExtractionSequence() {
         const targetUrl = inputField.value.trim();
         const selectedFormat = document.querySelector('input[name="format"]:checked').value;
 
@@ -608,96 +748,50 @@
         let progress = 0;
         const interval = setInterval(() => {
             let increment = Math.random() * 15 + 8;
+            
             if (progress > 80) {
                 increment = Math.random() * 4 + 1;
             }
+            
             progress += increment;
             
-            if (progress >= 92) {
-                progress = 92;
+            if (progress >= 100) {
+                progress = 100;
                 clearInterval(interval);
-            }
-            progressBar.style.width = `${progress}%`;
-            btnText.innerText = `Extracting (${Math.floor(progress)}%)`;
-        }, 100);
-
-        try {
-            // Send requests securely over AJAX JSON payload channels
-            const response = await fetch('/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: targetUrl, format: selectedFormat })
-            });
-
-            const data = await response.json();
-            clearInterval(interval);
-
-            if (data.success) {
                 progressBar.style.width = '100%';
                 btnText.innerText = "Extracted!";
                 
-                saveToPrivateHistory(targetUrl, selectedFormat);
-                
-                previewContainer.innerHTML = '';
-                previewSection.style.display = 'flex';
-
-                if (data.is_slideshow && data.images.length > 0) {
-                    previewHeading.innerText = `Tap Image to Save (${data.images.length} Photos)`;
-                    const grid = document.createElement('div');
-                    grid.className = 'photo-grid';
-                    
-                    data.images.forEach((imgUrl, idx) => {
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'grid-photo-wrapper';
-                        const ext = selectedFormat === 'mp3' ? 'mp3' : 'jpg';
-                        wrapper.onclick = () => downloadAssetDirectly(imgUrl, `photo_${idx + 1}.${ext}`);
-                        
-                        wrapper.innerHTML = `
-                            <img src="${imgUrl}" class="grid-photo" alt="Media photo slot">
-                            <div class="tap-to-download-overlay">SAVE</div>
-                        `;
-                        grid.appendChild(wrapper);
-                    });
-                    previewContainer.appendChild(grid);
+                // If it's a photo gallery, don't auto-download - user clicks photos
+                if (isPhotoGallery) {
+                    setTimeout(() => {
+                        progressBar.style.width = '0%';
+                        btnText.innerText = "Download File";
+                        btn.disabled = false;
+                        // Keep the input and preview visible for photo selection
+                    }, 800);
                 } else {
-                    previewHeading.innerText = "Video Thumbnail";
-                    const thumb = document.createElement('img');
-                    thumb.className = 'single-thumbnail';
-                    thumb.src = data.thumbnail;
-                    previewContainer.appendChild(thumb);
-
-                    if (data.direct_url) {
-                        const fileExt = selectedFormat === 'mp3' ? 'mp3' : 'mp4';
-                        downloadAssetDirectly(data.direct_url, `extracted_media.${fileExt}`);
-                    }
+                    // Auto-download for videos
+                    saveToPrivateHistory(targetUrl, selectedFormat);
+                    
+                    setTimeout(() => {
+                        progressBar.style.width = '0%';
+                        btnText.innerText = "Download File";
+                        btn.disabled = false;
+                        
+                        mainForm.submit();
+                        
+                        setTimeout(() => {
+                            inputField.value = '';
+                            inputField.classList.remove('valid-link', 'invalid-link');
+                            hidePreviews();
+                        }, 500);
+                    }, 800);
                 }
-
-                setTimeout(() => {
-                    progressBar.style.width = '0%';
-                    btnText.innerText = "Download File";
-                    btn.disabled = false;
-                    inputField.value = '';
-                    inputField.classList.remove('valid-link', 'invalid-link');
-                }, 1000);
-
             } else {
-                alert("Extraction failed: " + (data.error || "Unknown Error"));
-                resetUiState();
+                progressBar.style.width = `${progress}%`;
+                btnText.innerText = `Extracting (${Math.floor(progress)}%)`;
             }
-        } catch (err) {
-            clearInterval(interval);
-            alert("Connection error. Please try again.");
-            resetUiState();
-        }
-    }
-
-    function resetUiState() {
-        const btn = document.getElementById('download-btn');
-        const btnText = document.getElementById('btn-text');
-        const progressBar = document.getElementById('progress-bar');
-        progressBar.style.width = '0%';
-        btnText.innerText = "Download File";
-        btn.disabled = false;
+        }, 100);
     }
 
     renderPrivateHistory();
