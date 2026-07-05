@@ -4,7 +4,6 @@ import yt_dlp
 import requests
 from urllib.parse import urlparse
 import mimetypes
-import os
 
 app = Flask(__name__)
 
