@@ -410,6 +410,7 @@
 <script>
     const inputField = document.getElementById('url-input');
     const errorMsg = document.getElementById('url-error');
+    const mainForm = document.getElementById('downloader-form');
 
     function evaluateInput() {
         const url = inputField.value.trim();
@@ -488,32 +489,27 @@
                     <div class="recent-url">${item.url}</div>
                     <div class="recent-meta"><span class="badge">${item.format}</span>${item.timestamp}</div>
                 </div>
-                <span class="re-download-link" onclick="loadHistoricalLink('${item.url}', '${item.format}')">Load</span>
+                <span class="re-download-link" onclick="loadAndRunHistoricalLink('${item.url}', '${item.format}')">Load</span>
             `;
             target.appendChild(div);
         });
     }
 
-    function loadHistoricalLink(url, format) {
+    // Fixed bug: Now immediately triggers animation sequence and form delivery on historical clicks!
+    function loadAndRunHistoricalLink(url, format) {
         inputField.value = url;
         document.getElementById(`${format}-option`).checked = true;
         evaluateInput();
+        
+        // Simulates the click on submission button to kick-start processing directly
+        if (isValidLink(url)) {
+            executeExtractionSequence();
+        }
     }
 
-    renderPrivateHistory();
-
-    document.getElementById('downloader-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const form = this;
+    function executeExtractionSequence() {
         const targetUrl = inputField.value.trim();
         const selectedFormat = document.querySelector('input[name="format"]:checked').value;
-        
-        if (!isValidLink(targetUrl)) {
-            inputField.classList.remove('valid-link');
-            inputField.classList.add('invalid-link');
-            errorMsg.style.display = 'block';
-            return;
-        }
 
         const btn = document.getElementById('download-btn');
         const btnText = document.getElementById('btn-text');
@@ -523,15 +519,12 @@
         progressBar.style.width = '0%';
         btnText.innerText = "Extracting (0%)";
 
-        // Dynamic fluid loading progression calculation
         let progress = 0;
         const interval = setInterval(() => {
-            // Speed fluctuations to mimic actual streaming download frames
-            let increment = Math.random() * 15 + 5;
+            let increment = Math.random() * 15 + 8; // Decent, realistic fast increment speeds
             
-            // Deliberate realistic slow-down near the tail-end file preparation zone
-            if (progress > 75) {
-                increment = Math.random() * 3 + 1;
+            if (progress > 80) {
+                increment = Math.random() * 4 + 1; // Smooth control damping near finishing zone
             }
             
             progress += increment;
@@ -542,23 +535,44 @@
                 progressBar.style.width = '100%';
                 btnText.innerText = "Extracted!";
                 
-                // Immediately drops link into history box before page submission triggers
+                // Immediately drops item into local layout list view
                 saveToPrivateHistory(targetUrl, selectedFormat);
                 
                 setTimeout(() => {
-                    // Reset UI triggers and pass form actions to the backend python pipeline
                     progressBar.style.width = '0%';
                     btnText.innerText = "Download File";
-                    inputField.value = '';
-                    inputField.classList.remove('valid-link', 'invalid-link');
                     btn.disabled = false;
-                    form.submit();
+                    
+                    // Fixed Bug: Submit form cleanly WITHOUT erasing input fields prematurely
+                    mainForm.submit();
+                    
+                    // Erase input safely after delivery context finishes loading
+                    setTimeout(() => {
+                        inputField.value = '';
+                        inputField.classList.remove('valid-link', 'invalid-link');
+                    }, 500);
                 }, 800);
             } else {
                 progressBar.style.width = `${progress}%`;
                 btnText.innerText = `Extracting (${Math.floor(progress)}%)`;
             }
-        }, 120);
+        }, 100);
+    }
+
+    renderPrivateHistory();
+
+    mainForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const targetUrl = inputField.value.trim();
+        
+        if (!isValidLink(targetUrl)) {
+            inputField.classList.remove('valid-link');
+            inputField.classList.add('invalid-link');
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        executeExtractionSequence();
     });
 </script>
 
