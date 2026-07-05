@@ -239,6 +239,73 @@
             pointer-events: none;
         }
 
+        /* Preview Display System */
+        .preview-pane {
+            margin-top: 24px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .preview-pane h3 {
+            font-size: 14px;
+            margin: 0 0 12px 0;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .single-thumbnail {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .grid-photo-wrapper {
+            position: relative;
+            aspect-ratio: 1;
+            cursor: pointer;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.2s;
+        }
+
+        .grid-photo-wrapper:hover {
+            transform: scale(1.03);
+        }
+
+        .grid-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .tap-to-download-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            font-size: 9px;
+            padding: 2px 0;
+            font-weight: bold;
+        }
+
         .recent-container {
             background: var(--panel-bg);
             backdrop-filter: blur(20px);
@@ -362,7 +429,7 @@
     <p id="subtitle">Download clean 60 FPS media directly to your device.</p>
     <small class="supported-badge">Supported Platforms: <span>YouTube</span> <span>TikTok</span> <span>Snapchat</span></small>
     
-    <form id="downloader-form" method="POST">
+    <form id="downloader-form">
         <div class="format-selector">
             <input type="radio" id="mp4-option" name="format" value="mp4" checked class="format-option">
             <label for="mp4-option" class="format-label">🎬 MP4 Video</label>
@@ -382,6 +449,11 @@
             <span class="btn-text-content" id="btn-text">Download File</span>
         </button>
     </form>
+
+    <div class="preview-pane" id="preview-section">
+        <h3 id="preview-heading">Extracted Media</h3>
+        <div id="preview-media-container" style="width: 100%;"></div>
+    </div>
 
     <div class="credits-container">
         <div class="credits-title">Created by bero</div>
@@ -411,6 +483,9 @@
     const inputField = document.getElementById('url-input');
     const errorMsg = document.getElementById('url-error');
     const mainForm = document.getElementById('downloader-form');
+    const previewSection = document.getElementById('preview-section');
+    const previewContainer = document.getElementById('preview-media-container');
+    const previewHeading = document.getElementById('preview-heading');
 
     function evaluateInput() {
         const url = inputField.value.trim();
@@ -419,7 +494,6 @@
             errorMsg.style.display = 'none';
             return;
         }
-
         if (isValidLink(url)) {
             inputField.classList.remove('invalid-link');
             inputField.classList.add('valid-link');
@@ -477,7 +551,6 @@
             box.style.display = 'none';
             return;
         }
-        
         box.style.display = 'block';
         target.innerHTML = '';
         
@@ -495,19 +568,25 @@
         });
     }
 
-    // Fixed bug: Now immediately triggers animation sequence and form delivery on historical clicks!
     function loadAndRunHistoricalLink(url, format) {
         inputField.value = url;
         document.getElementById(`${format}-option`).checked = true;
         evaluateInput();
-        
-        // Simulates the click on submission button to kick-start processing directly
         if (isValidLink(url)) {
             executeExtractionSequence();
         }
     }
 
-    function executeExtractionSequence() {
+    function downloadAssetDirectly(url, defaultName) {
+        const a = document.createElement('a');
+        a.href = `/stream-file?url=${encodeURIComponent(url)}`;
+        a.download = defaultName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    async function executeExtractionSequence() {
         const targetUrl = inputField.value.trim();
         const selectedFormat = document.querySelector('input[name="format"]:checked').value;
 
@@ -519,59 +598,111 @@
         progressBar.style.width = '0%';
         btnText.innerText = "Extracting (0%)";
 
+        // Step 1: Start UI fake loading sequence to keep interactions looking fluid
         let progress = 0;
         const interval = setInterval(() => {
-            let increment = Math.random() * 15 + 8; // Decent, realistic fast increment speeds
-            
-            if (progress > 80) {
-                increment = Math.random() * 4 + 1; // Smooth control damping near finishing zone
-            }
-            
+            let increment = Math.random() * 12 + 6;
+            if (progress > 75) increment = Math.random() * 2 + 0.5;
             progress += increment;
-            
-            if (progress >= 100) {
-                progress = 100;
+            if (progress >= 92) {
+                progress = 92; // Pause near completion until real data returns
                 clearInterval(interval);
+            }
+            progressBar.style.width = `${progress}%`;
+            btnText.innerText = `Extracting (${Math.floor(progress)}%)`;
+        }, 120);
+
+        try {
+            // Send requests asynchronously to backend route
+            const response = await fetch('/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: targetUrl, format: selectedFormat })
+            });
+
+            const data = await response.json();
+            clearInterval(interval);
+
+            if (data.success) {
                 progressBar.style.width = '100%';
                 btnText.innerText = "Extracted!";
-                
-                // Immediately drops item into local layout list view
                 saveToPrivateHistory(targetUrl, selectedFormat);
-                
+
+                // Handle Display Elements
+                previewContainer.innerHTML = '';
+                previewSection.style.display = 'flex';
+
+                if (data.is_slideshow && data.images.length > 0) {
+                    // Slideshow Photos or Multi-Image Grid layout
+                    previewHeading.innerText = `Tap Image to Download (${data.images.length} Photos)`;
+                    const grid = document.createElement('div');
+                    grid.className = 'photo-grid';
+                    
+                    data.images.forEach((imgUrl, index) => {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'grid-photo-wrapper';
+                        wrapper.onclick = () => downloadAssetDirectly(imgUrl, `photo_${index+1}.jpg`);
+                        
+                        wrapper.innerHTML = `
+                            <img src="${imgUrl}" class="grid-photo" alt="Photo element">
+                            <div class="tap-to-download-overlay">SAVE</div>
+                        `;
+                        grid.appendChild(wrapper);
+                    });
+                    previewContainer.appendChild(grid);
+                } else {
+                    // Single Standard Video Structure — Show single thumbnail, triggers AUTO DOWNLOAD
+                    previewHeading.innerText = "Video Thumbnail";
+                    const thumb = document.createElement('img');
+                    thumb.className = 'single-thumbnail';
+                    thumb.src = data.thumbnail;
+                    previewContainer.appendChild(thumb);
+
+                    // Auto download the file payload link
+                    if (data.direct_url) {
+                        downloadAssetDirectly(data.direct_url, 'extracted_video.mp4');
+                    }
+                }
+
+                // Clean and unlock buttons
                 setTimeout(() => {
                     progressBar.style.width = '0%';
                     btnText.innerText = "Download File";
                     btn.disabled = false;
-                    
-                    // Fixed Bug: Submit form cleanly WITHOUT erasing input fields prematurely
-                    mainForm.submit();
-                    
-                    // Erase input safely after delivery context finishes loading
-                    setTimeout(() => {
-                        inputField.value = '';
-                        inputField.classList.remove('valid-link', 'invalid-link');
-                    }, 500);
-                }, 800);
+                    inputField.value = '';
+                    inputField.classList.remove('valid-link', 'invalid-link');
+                }, 1000);
+
             } else {
-                progressBar.style.width = `${progress}%`;
-                btnText.innerText = `Extracting (${Math.floor(progress)}%)`;
+                alert("Extraction failed: " + (data.error || "Unknown Error"));
+                resetUiState();
             }
-        }, 100);
+        } catch (err) {
+            clearInterval(interval);
+            alert("Server connection lost or failed to parse asset.");
+            resetUiState();
+        }
+    }
+
+    function resetUiState() {
+        const btn = document.getElementById('download-btn');
+        const btnText = document.getElementById('btn-text');
+        const progressBar = document.getElementById('progress-bar');
+        progressBar.style.width = '0%';
+        btnText.innerText = "Download File";
+        btn.disabled = false;
     }
 
     renderPrivateHistory();
 
     mainForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        const targetUrl = inputField.value.trim();
-        
-        if (!isValidLink(targetUrl)) {
+        if (!isValidLink(inputField.value.trim())) {
             inputField.classList.remove('valid-link');
             inputField.classList.add('invalid-link');
             errorMsg.style.display = 'block';
             return;
         }
-
         executeExtractionSequence();
     });
 </script>
