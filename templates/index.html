@@ -239,6 +239,7 @@
             pointer-events: none;
         }
 
+        /* Re-added Preview Elements */
         .preview-pane {
             margin-top: 24px;
             display: none;
@@ -493,6 +494,7 @@
             errorMsg.style.display = 'none';
             return;
         }
+
         if (isValidLink(url)) {
             inputField.classList.remove('invalid-link');
             inputField.classList.add('valid-link');
@@ -550,6 +552,7 @@
             box.style.display = 'none';
             return;
         }
+        
         box.style.display = 'block';
         target.innerHTML = '';
         
@@ -571,12 +574,13 @@
         inputField.value = url;
         document.getElementById(`${format}-option`).checked = true;
         evaluateInput();
+        
         if (isValidLink(url)) {
             executeExtractionSequence();
         }
     }
 
-    // Fixed: Routes the download link using the secure server proxy endpoint to trigger real device saves
+    // Triggers actual media stream from backend proxy route
     function downloadAssetDirectly(url, filename) {
         if (!url) return;
         const proxyUrl = `/download-file?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
@@ -603,18 +607,22 @@
 
         let progress = 0;
         const interval = setInterval(() => {
-            let increment = Math.random() * 12 + 6;
-            if (progress > 75) increment = Math.random() * 2 + 0.5;
+            let increment = Math.random() * 15 + 8;
+            if (progress > 80) {
+                increment = Math.random() * 4 + 1;
+            }
             progress += increment;
+            
             if (progress >= 92) {
                 progress = 92;
                 clearInterval(interval);
             }
             progressBar.style.width = `${progress}%`;
             btnText.innerText = `Extracting (${Math.floor(progress)}%)`;
-        }, 120);
+        }, 100);
 
         try {
+            // Send requests securely over AJAX JSON payload channels
             const response = await fetch('/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -627,8 +635,9 @@
             if (data.success) {
                 progressBar.style.width = '100%';
                 btnText.innerText = "Extracted!";
+                
                 saveToPrivateHistory(targetUrl, selectedFormat);
-
+                
                 previewContainer.innerHTML = '';
                 previewSection.style.display = 'flex';
 
@@ -640,13 +649,11 @@
                     data.images.forEach((imgUrl, idx) => {
                         const wrapper = document.createElement('div');
                         wrapper.className = 'grid-photo-wrapper';
-                        
-                        // Set specific image extension
-                        const extension = selectedFormat === 'mp3' ? 'mp3' : 'jpg';
-                        wrapper.onclick = () => downloadAssetDirectly(imgUrl, `media_photo_${idx + 1}.${extension}`);
+                        const ext = selectedFormat === 'mp3' ? 'mp3' : 'jpg';
+                        wrapper.onclick = () => downloadAssetDirectly(imgUrl, `photo_${idx + 1}.${ext}`);
                         
                         wrapper.innerHTML = `
-                            <img src="${imgUrl}" class="grid-photo" alt="Media element">
+                            <img src="${imgUrl}" class="grid-photo" alt="Media photo slot">
                             <div class="tap-to-download-overlay">SAVE</div>
                         `;
                         grid.appendChild(wrapper);
@@ -697,12 +704,15 @@
 
     mainForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        if (!isValidLink(inputField.value.trim())) {
+        const targetUrl = inputField.value.trim();
+        
+        if (!isValidLink(targetUrl)) {
             inputField.classList.remove('valid-link');
             inputField.classList.add('invalid-link');
             errorMsg.style.display = 'block';
             return;
         }
+
         executeExtractionSequence();
     });
 </script>
