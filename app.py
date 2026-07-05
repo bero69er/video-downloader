@@ -1,59 +1,87 @@
 import os
-from flask import Flask, render_template, request, send_file
+import re
+from flask import Flask, render_template, request, jsonify, send_file
 import yt_dlp
 
 app = Flask(__name__)
 
-# Configures the storage directory for downloaded files on your server
+# Ensure download folder exists
 DOWNLOAD_FOLDER = 'downloads'
 if not os.path.exists(DOWNLOAD_FOLDER):
     os.makedirs(DOWNLOAD_FOLDER)
 
+def clean_url(url):
+    return url.strip()
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        video_url = request.form.get('url')
-        requested_format = request.form.get('format')  # Grabs 'mp4' or 'mp3' from the frontend
-
-        # Global layout configuration rules for the engine
-        ydl_opts = {
-            'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title)s.%(ext)s'),
-            'restrictfilenames': True,
-            'noplaylist': True,
-        }
-
-        # Adjust formatting parameters on the fly based on user selection
-        if requested_format == 'mp3':
-            ydl_opts.update({
-                'format': 'bestaudio/best',
-                'postprocessors': [{
-                    'key': 'FFmpegExtractAudio',
-                    'preferredcodec': 'mp3',
-                    'preferredquality': '192',
-                }],
-            })
+        # Check if it's an AJAX fetch request
+        if request.is_json:
+            data = request.get_json()
+            url = clean_url(data.get('url', ''))
+            fmt = data.get('format', 'mp4')
         else:
-            ydl_opts.update({
-                'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-            })
+            url = clean_url(request.form.get('url', ''))
+            fmt = request.form.get('format', 'mp4')
+
+        if not url:
+            return jsonify({'error': 'No URL provided'}), 400
 
         try:
+            ydl_opts = {
+                'quiet': True,
+                'no_warnings': True,
+                'allowed_extractors': ['.*'],
+            }
+            
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(video_url, download=True)
-                filename = ydl.prepare_filename(info)
+                info = ydl.extract_info(url, download=False)
                 
-                # Resolves the exact system extension if audio post-processing occurred
-                if requested_format == 'mp3':
-                    filename = os.path.splitext(filename)[0] + '.mp3'
-
-            # Packages and streams the target file right to the iOS download manager folder
-            return send_file(filename, as_attachment=True)
+                # Check for TikTok photo slideshows / images
+                images = []
+                if 'entries' in info:
+                    # Playlist/slideshow structure
+                    for entry in info['entries']:
+                        if entry.get('url') and entry.get('ext') in ['jpg', 'jpeg', 'png', 'webp']:
+                            images.append(entry.get('url'))
+                elif info.get('requested_downloads'):
+                    for d in info['requested_downloads']:
+                        if d.get('ext') in ['jpg', 'jpeg', 'png', 'webp'] or 'image' in d.get('format', ''):
+                            images.append(d.get('url'))
+                
+                # Fallback check for raw images in info dict
+                if not images and info.get('ext') in ['jpg', 'jpeg', 'png', 'webp']:
+                    images.append(info.get('url'))
+                
+                thumbnail = info.get('thumbnail') or info.get('thumbnails', [{}])[-1].get('url', '')
+                
+                # Determine type
+                is_slideshow = len(images) > 0
+                
+                # Respond back to frontend asynchronously
+                return jsonify({
+                    'success': True,
+                    'title': info.get('title', 'Media'),
+                    'thumbnail': thumbnail,
+                    'is_slideshow': is_slideshow,
+                    'images': images,
+                    'direct_url': info.get('url') if not is_slideshow else None
+                })
 
         except Exception as e:
-            return f"An error occurred during extraction processing: {str(e)}", 400
+            return jsonify({'error': str(e)}), 500
 
     return render_template('index.html')
 
+# Endpoint to safely handle direct media streaming/downloads if needed
+@app.route('/stream-file')
+def stream_file():
+    file_url = request.args.get('url')
+    if not file_url:
+        return "Missing media URL", 400
+    # Redirect directly to streaming CDN asset safely
+    return f"<script>window.location.href='{file_url}';</script>"
+
 if __name__ == '__main__':
-    # Binds server directly to local loopback ports for development testing
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
